@@ -1,0 +1,16 @@
+{
+  "short_name": "Kiosco Unifranz",
+  "name": "Kiosco Cafetería Unifranz",
+  "start_url": "/kiosko",
+  "background_color": "#A60297",
+  "theme_color": "#A60297",
+  "display": "standalone",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/pinkpepper.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}
