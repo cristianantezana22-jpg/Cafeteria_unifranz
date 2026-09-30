@@ -7,13 +7,13 @@
   background: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --forest: #de1bb9;
-  --forest-deep: #de1bb9;
+  --forest: #A60297;
+  --forest-deep: #A60297;
   --ink: #24332c;
   --muted: #777f78;
   --paper: #ffffff;
   --line: #e4e6df;
-  --coral: #de1bb9;
+  --coral: #A60297;
   --green-detail: #239960;
 }
 
@@ -60,7 +60,7 @@ a {
   padding: 38px 7.3%;
   overflow: hidden;
   color: #fff;
-  background: #de1bb9 url('https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1600&q=90') center / cover;
+  background: #A60297 url('https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1600&q=90') center / cover;
 }
 
 .auth-image::before {
@@ -90,6 +90,13 @@ a {
   font-size: 8px;
   font-weight: 600;
   letter-spacing: 1.6px;
+}
+
+.brand-logo {
+  display: block;
+  width: 104px;
+  height: 72px;
+  object-fit: contain;
 }
 
 .brand-mark {

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState, type FormEvent } from 'react'
 import { getCurrentSession, loginCustomer } from '../infrastructure/cafeteria'
+import brandLogo from '../assets/pink-paper-logo.svg'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -33,9 +34,8 @@ function Home() {
   return (
     <main className="auth-layout">
       <section className="auth-image" aria-label="Café recién preparado">
-        <div className="brand brand-light" aria-label="Cafetería Unifranz">
-          <span className="brand-mark">U</span>
-          <span>CAFETERÍA <small>UNIFRANZ</small></span>
+        <div className="brand brand-light">
+          <img className="brand-logo" src={brandLogo} alt="Pink Paper" />
         </div>
         <div className="image-caption">
           <span className="eyebrow">HECHO DESPACIO, DISFRUTADO AQUÍ</span>
@@ -46,9 +46,8 @@ function Home() {
 
       <section className="auth-panel">
         <div className="auth-content">
-          <div className="mobile-brand brand" aria-label="Cafetería Unifranz">
-            <span className="brand-mark">U</span>
-            <span>CAFETERÍA <small>UNIFRANZ</small></span>
+          <div className="mobile-brand brand">
+            <img className="brand-logo" src={brandLogo} alt="Pink Paper" />
           </div>
           <p className="eyebrow accent">TU MESA TE ESPERA</p>
           <h1>Un gusto verte.</h1>

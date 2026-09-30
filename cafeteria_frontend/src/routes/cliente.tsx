@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { Product } from '../domain/models'
+import brandLogo from '../assets/pink-paper-logo.svg'
 import {
   getCurrentSession,
   getFeaturedProducts,
@@ -53,9 +54,8 @@ function CustomerHome() {
   return (
     <main className="customer-page">
       <header className="topbar">
-        <div className="brand" aria-label="Cafetería Unifranz">
-          <span className="brand-mark">U</span>
-          <span>CAFETERÍA <small>UNIFRANZ</small></span>
+        <div className="brand">
+          <img className="brand-logo" src={brandLogo} alt="Pink Paper" />
         </div>
         <div className="topbar-right">
           <span className="location-label"><i /> LA PAZ, BOLIVIA</span>
