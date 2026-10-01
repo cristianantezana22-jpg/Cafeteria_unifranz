@@ -125,7 +125,7 @@ const getServerTime = createServerFn({
   return new Date().toISOString()
 })
 
-// Use in a component
+// Use in a component gg
 function MyComponent() {
   const [time, setTime] = useState('')
   
