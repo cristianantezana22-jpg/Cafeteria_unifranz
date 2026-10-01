@@ -126,6 +126,7 @@ const getServerTime = createServerFn({
 })
 
 // Use in a component gg
+
 function MyComponent() {
   const [time, setTime] = useState('')
   
@@ -183,12 +184,14 @@ function PeopleComponent() {
 }
 ```
 
+
 Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
 
 
 
-# Learn More
+# Learn More 
 
 You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
 
 For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+
