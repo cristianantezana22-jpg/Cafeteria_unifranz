@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-	private static final String DEMO_TOKEN = "Bearer demo-session-token";
+	private static final String DEMO_TOKEN = "demo-session-token";
 	private final GetFeaturedProducts getFeaturedProducts;
 
 	public ProductController(GetFeaturedProducts getFeaturedProducts) {

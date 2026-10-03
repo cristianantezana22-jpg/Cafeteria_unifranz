@@ -2,11 +2,15 @@ package com.cafeteria.cafeteria_unifranz.infrastructure.config;
 
 import com.cafeteria.cafeteria_unifranz.application.port.in.AuthenticateCustomer;
 import com.cafeteria.cafeteria_unifranz.application.port.in.GetFeaturedProducts;
+import com.cafeteria.cafeteria_unifranz.application.port.in.PlaceOrder;
 import com.cafeteria.cafeteria_unifranz.application.port.out.CustomerRepository;
+import com.cafeteria.cafeteria_unifranz.application.port.out.OrderRepository;
 import com.cafeteria.cafeteria_unifranz.application.port.out.ProductRepository;
 import com.cafeteria.cafeteria_unifranz.application.service.CustomerAuthenticationService;
 import com.cafeteria.cafeteria_unifranz.application.service.FeaturedProductService;
+import com.cafeteria.cafeteria_unifranz.application.service.OrderPlacementService;
 import com.cafeteria.cafeteria_unifranz.infrastructure.adapter.out.InMemoryCustomerRepository;
+import com.cafeteria.cafeteria_unifranz.infrastructure.adapter.out.InMemoryOrderRepository;
 import com.cafeteria.cafeteria_unifranz.infrastructure.adapter.out.InMemoryProductRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +28,11 @@ public class ApplicationConfiguration {
 	}
 
 	@Bean
+	OrderRepository orderRepository() {
+		return new InMemoryOrderRepository();
+	}
+
+	@Bean
 	AuthenticateCustomer authenticateCustomer(CustomerRepository customerRepository) {
 		return new CustomerAuthenticationService(customerRepository);
 	}
@@ -31,5 +40,10 @@ public class ApplicationConfiguration {
 	@Bean
 	GetFeaturedProducts getFeaturedProducts(ProductRepository productRepository) {
 		return new FeaturedProductService(productRepository);
+	}
+
+	@Bean
+	PlaceOrder placeOrder(ProductRepository productRepository, OrderRepository orderRepository) {
+		return new OrderPlacementService(productRepository, orderRepository);
 	}
 }

@@ -4,6 +4,7 @@ import com.cafeteria.cafeteria_unifranz.application.port.out.ProductRepository;
 import com.cafeteria.cafeteria_unifranz.domain.Product;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryProductRepository implements ProductRepository {
 	private static final List<Product> PRODUCTS = List.of(
@@ -16,5 +17,10 @@ public class InMemoryProductRepository implements ProductRepository {
 	@Override
 	public List<Product> findFeaturedProducts() {
 		return PRODUCTS.stream().filter(Product::featured).toList();
+	}
+
+	@Override
+	public Optional<Product> findById(String id) {
+		return PRODUCTS.stream().filter(product -> product.id().equals(id)).findFirst();
 	}
 }

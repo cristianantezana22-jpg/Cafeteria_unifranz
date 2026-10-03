@@ -18,3 +18,22 @@ export type Product = {
   imageUrl: string
   featured: boolean
 }
+
+export type OrderRequestItem = {
+  productId: string
+  quantity: number
+}
+
+export type CustomerOrder = {
+  id: string
+  customerId: string
+  items: {
+    productId: string
+    name: string
+    unitPrice: number
+    quantity: number
+    subtotal: number
+  }[]
+  total: number
+  createdAt: string
+}
