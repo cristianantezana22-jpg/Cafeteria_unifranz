@@ -1,12 +1,10 @@
+import React from 'react'
 import ReactDOM from 'react-dom/client'
+import './index.css'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
-const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-  scrollRestoration: true,
-})
+const router = createRouter({ routeTree })
 
 declare module '@tanstack/react-router' {
   interface Register {
@@ -14,9 +12,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const rootElement = document.getElementById('app')!
+// Búsqueda flexible del contenedor HTML
+const rootElement = document.getElementById('app') || document.getElementById('root') || document.body
 
-if (!rootElement.innerHTML) {
+if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  root.render(<RouterProvider router={router} />)
+  root.render(
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>,
+  )
 }
