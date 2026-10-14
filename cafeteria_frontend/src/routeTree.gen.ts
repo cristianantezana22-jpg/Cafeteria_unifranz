@@ -8,32 +8,53 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+<<<<<<< HEAD
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KioskoRouteImport } from './routes/kiosko'
+=======
+import { Route as rootRouteImport } from './presentation/views/__root'
+import { Route as IndexRouteImport } from './presentation/views/index'
+import { Route as ClienteRouteImport } from './presentation/views/cliente'
+>>>>>>> cristian
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+<<<<<<< HEAD
 const KioskoRoute = KioskoRouteImport.update({
   id: '/kiosko',
   path: '/kiosko',
+=======
+const ClienteRoute = ClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+>>>>>>> cristian
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+<<<<<<< HEAD
   '/kiosko': typeof KioskoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kiosko': typeof KioskoRoute
+=======
+  '/cliente': typeof ClienteRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/cliente': typeof ClienteRoute
+>>>>>>> cristian
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+<<<<<<< HEAD
   '/kiosko': typeof KioskoRoute
 }
 export interface FileRouteTypes {
@@ -42,11 +63,25 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/kiosko'
   id: '__root__' | '/' | '/kiosko'
+=======
+  '/cliente': typeof ClienteRoute
+}
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/cliente'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/cliente'
+  id: '__root__' | '/' | '/cliente'
+>>>>>>> cristian
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+<<<<<<< HEAD
   KioskoRoute: typeof KioskoRoute
+=======
+  ClienteRoute: typeof ClienteRoute
+>>>>>>> cristian
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +93,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+<<<<<<< HEAD
     '/kiosko': {
       id: '/kiosko'
       path: '/kiosko'
       fullPath: '/kiosko'
       preLoaderRoute: typeof KioskoRouteImport
+=======
+    '/cliente': {
+      id: '/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof ClienteRouteImport
+>>>>>>> cristian
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +113,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+<<<<<<< HEAD
   KioskoRoute: KioskoRoute,
+=======
+  ClienteRoute: ClienteRoute,
+>>>>>>> cristian
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
