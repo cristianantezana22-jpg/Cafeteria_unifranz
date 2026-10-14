@@ -1,5 +1,5 @@
-import type { CafeteriaGateway } from '../ports/CafeteriaGateway'
-import type { SessionRepository } from '../ports/SessionRepository'
+import type { CafeteriaGateway } from '../services/CafeteriaGateway'
+import type { SessionRepository } from '../services/SessionRepository'
 
 export function createLoginCustomer(
   gateway: CafeteriaGateway,

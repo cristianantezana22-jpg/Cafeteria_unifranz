@@ -8,9 +8,9 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ClienteRouteImport } from './routes/cliente'
+import { Route as rootRouteImport } from './presentation/views/__root'
+import { Route as IndexRouteImport } from './presentation/views/index'
+import { Route as ClienteRouteImport } from './presentation/views/cliente'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',

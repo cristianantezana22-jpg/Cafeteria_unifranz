@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { CafeteriaGateway } from '../../application/ports/CafeteriaGateway'
+import type { CafeteriaGateway } from '../../application/services/CafeteriaGateway'
 import type {
   CustomerOrder,
   CustomerSession,

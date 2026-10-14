@@ -11,7 +11,12 @@ const config = defineConfig({
   plugins: [
     devtools(),
     tailwindcss(),
-    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+      routesDirectory: './src/presentation/views',
+      generatedRouteTree: './src/routeTree.gen.ts',
+    }),
     viteReact(),
   ],
 })
