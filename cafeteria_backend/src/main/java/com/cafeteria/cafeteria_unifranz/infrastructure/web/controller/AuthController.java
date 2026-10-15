@@ -3,6 +3,7 @@ package com.cafeteria.cafeteria_unifranz.infrastructure.web.controller;
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginRequest;
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginResponse;
 import com.cafeteria.cafeteria_unifranz.application.service.AuthenticateCustomer;
+import com.cafeteria.cafeteria_unifranz.domain.Customer;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
