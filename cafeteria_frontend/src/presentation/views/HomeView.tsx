@@ -1,10 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
 import brandLogo from '../assets/pink-paper-logo.svg'
 import { LoginForm } from '../components/LoginForm/LoginForm'
 
-export const Route = createFileRoute('/')({ component: Home })
-
-function Home() {
+export function HomeView() {
   return (
     <main className="auth-layout">
       <section className="auth-image" aria-label="Café recién preparado">
@@ -13,7 +10,11 @@ function Home() {
         </div>
         <div className="image-caption">
           <span className="eyebrow">HECHO DESPACIO, DISFRUTADO AQUÍ</span>
-          <p>Un buen día<br />empieza en la mesa.</p>
+          <p>
+            Un buen día
+            <br />
+            empieza en la mesa.
+          </p>
         </div>
         <span className="image-credit">CAFÉ DE ORIGEN · LA PAZ, BOLIVIA</span>
       </section>
@@ -25,12 +26,15 @@ function Home() {
           </div>
           <p className="eyebrow accent">TU MESA TE ESPERA</p>
           <h1>Un gusto verte.</h1>
-          <p className="auth-intro">Ingresa a tu espacio y descubre lo que preparamos hoy.</p>
+          <p className="auth-intro">
+            Ingresa a tu espacio y descubre lo que preparamos hoy.
+          </p>
 
           <LoginForm />
 
-          <p className="demo-hint">Acceso de prueba: <strong>cliente@cafeteria.com</strong> · <strong>cafe123</strong></p>
-          <p className="auth-footer">CAFETERÍA UNIFRANZ<span>·</span> BUENO, SIMPLE Y HECHO AQUÍ</p>
+          <p className="auth-footer">
+            CAFETERÍA UNIFRANZ<span>·</span> BUENO, SIMPLE Y HECHO AQUÍ
+          </p>
         </div>
       </section>
     </main>

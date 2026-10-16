@@ -8,80 +8,75 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-<<<<<<< HEAD
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as KioskoRouteImport } from './routes/kiosko'
-=======
-import { Route as rootRouteImport } from './presentation/views/__root'
-import { Route as IndexRouteImport } from './presentation/views/index'
-import { Route as ClienteRouteImport } from './presentation/views/cliente'
->>>>>>> cristian
+import { Route as rootRouteImport } from './presentation/routes/__root'
+import { Route as IndexRouteImport } from './presentation/routes/index'
+import { Route as AdminRouteImport } from './presentation/routes/admin'
+import { Route as CajeroRouteImport } from './presentation/routes/cajero'
+import { Route as ClienteRouteImport } from './presentation/routes/cliente'
+import { Route as PantallasRouteImport } from './presentation/routes/pantallas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-<<<<<<< HEAD
-const KioskoRoute = KioskoRouteImport.update({
-  id: '/kiosko',
-  path: '/kiosko',
-=======
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CajeroRoute = CajeroRouteImport.update({
+  id: '/cajero',
+  path: '/cajero',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClienteRoute = ClienteRouteImport.update({
   id: '/cliente',
   path: '/cliente',
->>>>>>> cristian
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PantallasRoute = PantallasRouteImport.update({
+  id: '/pantallas',
+  path: '/pantallas',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-<<<<<<< HEAD
-  '/kiosko': typeof KioskoRoute
+  '/admin': typeof AdminRoute
+  '/cajero': typeof CajeroRoute
+  '/cliente': typeof ClienteRoute
+  '/pantallas': typeof PantallasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/kiosko': typeof KioskoRoute
-=======
+  '/admin': typeof AdminRoute
+  '/cajero': typeof CajeroRoute
   '/cliente': typeof ClienteRoute
-}
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/cliente': typeof ClienteRoute
->>>>>>> cristian
+  '/pantallas': typeof PantallasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-<<<<<<< HEAD
-  '/kiosko': typeof KioskoRoute
-}
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kiosko'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kiosko'
-  id: '__root__' | '/' | '/kiosko'
-=======
+  '/admin': typeof AdminRoute
+  '/cajero': typeof CajeroRoute
   '/cliente': typeof ClienteRoute
+  '/pantallas': typeof PantallasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cliente'
+  fullPaths: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cliente'
-  id: '__root__' | '/' | '/cliente'
->>>>>>> cristian
+  to: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
+  id: '__root__' | '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-<<<<<<< HEAD
-  KioskoRoute: typeof KioskoRoute
-=======
+  AdminRoute: typeof AdminRoute
+  CajeroRoute: typeof CajeroRoute
   ClienteRoute: typeof ClienteRoute
->>>>>>> cristian
+  PantallasRoute: typeof PantallasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -93,19 +88,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-<<<<<<< HEAD
-    '/kiosko': {
-      id: '/kiosko'
-      path: '/kiosko'
-      fullPath: '/kiosko'
-      preLoaderRoute: typeof KioskoRouteImport
-=======
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cajero': {
+      id: '/cajero'
+      path: '/cajero'
+      fullPath: '/cajero'
+      preLoaderRoute: typeof CajeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cliente': {
       id: '/cliente'
       path: '/cliente'
       fullPath: '/cliente'
       preLoaderRoute: typeof ClienteRouteImport
->>>>>>> cristian
+      parentRoute: typeof rootRouteImport
+    }
+    '/pantallas': {
+      id: '/pantallas'
+      path: '/pantallas'
+      fullPath: '/pantallas'
+      preLoaderRoute: typeof PantallasRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -113,12 +121,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-<<<<<<< HEAD
-  KioskoRoute: KioskoRoute,
-=======
+  AdminRoute: AdminRoute,
+  CajeroRoute: CajeroRoute,
   ClienteRoute: ClienteRoute,
->>>>>>> cristian
+  PantallasRoute: PantallasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

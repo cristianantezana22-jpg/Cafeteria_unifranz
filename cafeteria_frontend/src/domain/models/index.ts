@@ -7,7 +7,10 @@ export type Customer = {
 export type CustomerSession = {
   token: string
   customer: Customer
+  role: UserRole
 }
+
+export type UserRole = 'CLIENTE' | 'CAJERO' | 'ADMIN' | 'PANTALLA'
 
 export type Product = {
   id: string
