@@ -186,18 +186,6 @@ a {
   line-height: 1.5;
 }
 
-.demo-hint {
-  margin: 21px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.demo-hint strong {
-  color: var(--ink);
-  font-weight: 600;
-}
-
 .auth-footer {
   margin: 74px 0 0;
   color: #959b94;

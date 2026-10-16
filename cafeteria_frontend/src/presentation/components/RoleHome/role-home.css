@@ -1,0 +1,15 @@
+.role-home {
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.role-home-logout {
+  z-index: 1;
+  width: 170px;
+}
+
+@media (max-width: 680px) {
+  .role-home-logout {
+    width: 130px;
+  }
+}

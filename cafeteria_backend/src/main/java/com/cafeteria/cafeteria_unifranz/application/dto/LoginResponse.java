@@ -1,6 +1,11 @@
 package com.cafeteria.cafeteria_unifranz.application.dto;
 
-import com.cafeteria.cafeteria_unifranz.domain.Customer;
+/**
+ * Misma forma que CustomerSession del frontend:
+ * { token, customer: { id, name, email }, role }
+ */
+public record LoginResponse(String token, Customer customer, String role) {
 
-public record LoginResponse(String token, Customer customer) {
+    public record Customer(String id, String name, String email) {
+    }
 }

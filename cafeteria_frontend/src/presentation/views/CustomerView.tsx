@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { CustomerOrder, Product } from '../../domain/models'
 import { Button } from '../components/Button/Button'
@@ -17,14 +17,7 @@ type CartItem = {
   quantity: number
 }
 
-export const Route = createFileRoute('/cliente')({
-  beforeLoad: () => {
-    if (!getCurrentSession()) throw redirect({ to: '/' })
-  },
-  component: CustomerHome,
-})
-
-function CustomerHome() {
+export function CustomerView() {
   const navigate = useNavigate()
   const session = getCurrentSession()
   const [products, setProducts] = useState<Product[]>([])
