@@ -8,11 +8,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.cafeteria.cafeteria_unifranz.Domain.InvalidCredentialsException;
+import com.cafeteria.cafeteria_unifranz.Domain.EmailAlreadyRegisteredException;
 import com.cafeteria.cafeteria_unifranz.Domain.RoleNotAllowedException;
 import com.cafeteria.cafeteria_unifranz.application.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
+    }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {

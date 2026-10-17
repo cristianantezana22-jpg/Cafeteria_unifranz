@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginRequest;
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginResponse;
+import com.cafeteria.cafeteria_unifranz.application.dto.CustomerRegistrationRequest;
 import com.cafeteria.cafeteria_unifranz.application.service.AuthService;
 
 @RestController
@@ -24,5 +25,10 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/register")
+    public LoginResponse register(@Valid @RequestBody CustomerRegistrationRequest request) {
+        return authService.register(request);
     }
 }

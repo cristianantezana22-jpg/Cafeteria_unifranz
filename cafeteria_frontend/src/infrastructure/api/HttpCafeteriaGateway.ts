@@ -46,6 +46,23 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
+  async register(
+    name: string,
+    email: string,
+    password: string,
+  ): Promise<CustomerSession> {
+    try {
+      const response = await api.post<CustomerSession>('/api/auth/register', {
+        nombreCompleto: name,
+        email,
+        password,
+      })
+      return response.data
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo crear la cuenta. Inténtalo de nuevo.')
+    }
+  }
+
   async getFeaturedProducts(token: string): Promise<Product[]> {
     const response = await api.get<Product[]>('/api/products/featured', {
       headers: bearer(token),

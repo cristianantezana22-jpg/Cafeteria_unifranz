@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './presentation/routes/admin'
 import { Route as CajeroRouteImport } from './presentation/routes/cajero'
 import { Route as ClienteRouteImport } from './presentation/routes/cliente'
 import { Route as PantallasRouteImport } from './presentation/routes/pantallas'
+import { Route as RegistroRouteImport } from './presentation/routes/registro'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const PantallasRoute = PantallasRouteImport.update({
   path: '/pantallas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegistroRoute = RegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/cajero': typeof CajeroRoute
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
+  '/registro': typeof RegistroRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/cajero': typeof CajeroRoute
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
+  '/registro': typeof RegistroRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/cajero': typeof CajeroRoute
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
+  '/registro': typeof RegistroRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
+  fullPaths:
+    '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas' | '/registro'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
-  id: '__root__' | '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas'
+  to: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas' | '/registro'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/cajero'
+    | '/cliente'
+    | '/pantallas'
+    | '/registro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   CajeroRoute: typeof CajeroRoute
   ClienteRoute: typeof ClienteRoute
   PantallasRoute: typeof PantallasRoute
+  RegistroRoute: typeof RegistroRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PantallasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/registro': {
+      id: '/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   CajeroRoute: CajeroRoute,
   ClienteRoute: ClienteRoute,
   PantallasRoute: PantallasRoute,
+  RegistroRoute: RegistroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
