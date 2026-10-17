@@ -196,10 +196,10 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
         <div className="cashier-menu-sidebar-bottom">
           <div className="cashier-menu-profile">
             <span className="cashier-menu-avatar">
-              {(session?.user.name ?? 'C').slice(0, 1).toUpperCase()}
+              {(session?.customer.name ?? 'C').slice(0, 1).toUpperCase()}
             </span>
             <span className="cashier-menu-profile-copy">
-              <strong>{session?.user.name ?? 'Cajero'}</strong>
+              <strong>{session?.customer.name ?? 'Cajero'}</strong>
               <small>Cajero</small>
             </span>
           </div>

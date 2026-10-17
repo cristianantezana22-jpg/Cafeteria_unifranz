@@ -28,7 +28,7 @@ const REFRESH_INTERVAL_MS = 10_000
 
 export function useCashierBoard() {
   const navigate = useNavigate()
-  const userName = getCurrentSession()?.user.name ?? ''
+  const userName = getCurrentSession()?.customer.name ?? ''
   const [profile, setProfile] = useState<CashierProfile | null>(null)
   const [orders, setOrders] = useState<CashierOrder[]>([])
   const [filter, setFilter] = useState<BoardFilter>('TODOS')

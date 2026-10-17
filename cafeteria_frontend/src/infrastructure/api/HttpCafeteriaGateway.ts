@@ -1,12 +1,19 @@
 import axios, { isAxiosError } from 'axios'
 import type { CafeteriaGateway } from '../../application/services/CafeteriaGateway'
 import type {
+  CashierOrder,
+  CashierProfile,
   Category,
   CustomerOrder,
   CustomerSession,
+  MenuCategory,
+  MenuProduct,
+  MenuProductRequest,
+  OrderStatus,
   OrderRequestItem,
   PlaceOrderRequest,
   Product,
+  UserRole,
 } from '../../domain/models'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 
@@ -65,11 +72,11 @@ function toReadableError(error: unknown, fallback: string): Error {
 export class HttpCafeteriaGateway implements CafeteriaGateway {
   async login(email: string, password: string): Promise<CustomerSession> {
     try {
-      const response = await api.post<CustomerSession>('/api/auth/login', {
+      const response = await api.post<AuthResponse>('/api/auth/login', {
         email,
         password,
       })
-      return response.data
+      return mapSession(response.data)
     } catch (error) {
       throw toReadableError(
         error,
@@ -84,12 +91,12 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     password: string,
   ): Promise<CustomerSession> {
     try {
-      const response = await api.post<CustomerSession>('/api/auth/register', {
+      const response = await api.post<AuthResponse>('/api/auth/register', {
         nombreCompleto: name,
         email,
         password,
       })
-      return response.data
+      return mapSession(response.data)
     } catch (error) {
       throw toReadableError(error, 'No se pudo crear la cuenta. Inténtalo de nuevo.')
     } // <- Llave de cierre del catch añadida
@@ -126,6 +133,120 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     return this.getProducts(token)
   }
 
+  async getCashierOrders(token: string): Promise<CashierOrder[]> {
+    try {
+      const response = await api.get<CashierOrderResponse[]>(
+        '/api/cajero/pedidos',
+        { headers: bearer(token) },
+      )
+      return response.data.map(mapCashierOrder)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudieron cargar los pedidos de caja.')
+    }
+  }
+
+  async getCashierProfile(token: string): Promise<CashierProfile> {
+    try {
+      const response = await api.get<CashierProfileResponse>(
+        '/api/cajero/perfil',
+        { headers: bearer(token) },
+      )
+      return {
+        block: response.data.bloque,
+        canManageLunch: response.data.gestionaAlmuerzos,
+      }
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo cargar el perfil de caja.')
+    }
+  }
+
+  async updateOrderStatus(
+    token: string,
+    orderId: number,
+    status: OrderStatus,
+  ): Promise<CashierOrder> {
+    try {
+      const response = await api.patch<CashierOrderResponse>(
+        `/api/cajero/pedidos/${orderId}/estado`,
+        { estado: status },
+        { headers: bearer(token) },
+      )
+      return mapCashierOrder(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo actualizar el estado del pedido.')
+    }
+  }
+
+  async getMenuProducts(token: string): Promise<MenuProduct[]> {
+    try {
+      const response = await api.get<MenuProductResponse[]>(
+        '/api/cajero/menu/products',
+        { headers: bearer(token) },
+      )
+      return response.data.map(mapMenuProduct)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudieron cargar los productos del menú.')
+    }
+  }
+
+  async getMenuCategories(token: string): Promise<MenuCategory[]> {
+    try {
+      const response = await api.get<MenuCategoryResponse[]>(
+        '/api/cajero/menu/categories',
+        { headers: bearer(token) },
+      )
+      return response.data.map((category) => ({
+        id: category.id,
+        name: category.name,
+      }))
+    } catch (error) {
+      throw toReadableError(error, 'No se pudieron cargar las categorías del menú.')
+    }
+  }
+
+  async createMenuProduct(
+    token: string,
+    request: MenuProductRequest,
+  ): Promise<MenuProduct> {
+    try {
+      const response = await api.post<MenuProductResponse>(
+        '/api/cajero/menu/products',
+        toMenuProductRequest(request),
+        { headers: bearer(token) },
+      )
+      return mapMenuProduct(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo crear el producto.')
+    }
+  }
+
+  async updateMenuProduct(
+    token: string,
+    productId: string,
+    request: MenuProductRequest,
+  ): Promise<MenuProduct> {
+    try {
+      const response = await api.put<MenuProductResponse>(
+        `/api/cajero/menu/products/${productId}`,
+        toMenuProductRequest(request),
+        { headers: bearer(token) },
+      )
+      return mapMenuProduct(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo actualizar el producto.')
+    }
+  }
+
+  async deleteMenuProduct(token: string, productId: string): Promise<void> {
+    try {
+      await api.delete(`/api/cajero/menu/products/${productId}`, {
+        headers: bearer(token),
+      })
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo eliminar el producto.')
+    }
+  }
+
   async placeOrder(
     token: string,
     request: PlaceOrderRequest | OrderRequestItem[],
@@ -156,6 +277,58 @@ type CategoryResponse = {
   name: string
 }
 
+type AuthResponse = {
+  token: string
+  user: {
+    id: string
+    name: string
+    email: string
+  }
+  role: UserRole
+}
+
+type CashierProfileResponse = {
+  bloque: CashierProfile['block']
+  gestionaAlmuerzos: boolean
+}
+
+type CashierOrderResponse = {
+  id: number
+  ticket: string
+  estado: OrderStatus
+  origen: string
+  cliente: string
+  metodoPago: string | null
+  estadoPago: string | null
+  total: number
+  creadoEn: string
+  almuerzo: boolean
+  editable: boolean
+  siguienteEstado: OrderStatus | null
+  cancelable: boolean
+  items: {
+    nombre: string
+    cantidad: number
+    subtotal: number
+  }[]
+}
+
+type MenuCategoryResponse = {
+  id: number
+  name: string
+}
+
+type MenuProductResponse = {
+  id: number
+  name: string
+  description: string
+  price: number
+  category: string
+  categoryId: number
+  imageUrl: string
+  featured: boolean
+}
+
 type ProductResponse = {
   id: number
   name: string
@@ -178,6 +351,59 @@ type OrderResponse = {
   }[]
   totalAmount: number
   createdAt: string
+}
+
+function mapSession(response: AuthResponse): CustomerSession {
+  return {
+    token: response.token,
+    customer: response.user,
+    role: response.role,
+  }
+}
+
+function mapCashierOrder(order: CashierOrderResponse): CashierOrder {
+  return {
+    id: order.id,
+    ticket: order.ticket,
+    status: order.estado,
+    origin: order.origen,
+    customerName: order.cliente,
+    paymentMethod: order.metodoPago,
+    paymentStatus: order.estadoPago,
+    total: Number(order.total),
+    createdAt: order.creadoEn,
+    isLunch: order.almuerzo,
+    isEditable: order.editable,
+    nextStatus: order.siguienteEstado,
+    isCancellable: order.cancelable,
+    items: order.items.map((item) => ({
+      name: item.nombre,
+      quantity: item.cantidad,
+      subtotal: Number(item.subtotal),
+    })),
+  }
+}
+
+function mapMenuProduct(product: MenuProductResponse): MenuProduct {
+  return {
+    id: String(product.id),
+    name: product.name,
+    description: product.description,
+    price: Number(product.price),
+    category: product.category,
+    categoryId: product.categoryId,
+    imageUrl: product.imageUrl,
+    featured: product.featured,
+  }
+}
+
+function toMenuProductRequest(request: MenuProductRequest) {
+  return {
+    name: request.name,
+    categoryId: request.categoryId,
+    price: request.price,
+    featured: request.featured,
+  }
 }
 
 function mapProduct(product: ProductResponse): Product {

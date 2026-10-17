@@ -2,6 +2,12 @@ import type {
   CustomerOrder,
   CustomerSession,
   Category,
+  CashierOrder,
+  CashierProfile,
+  MenuCategory,
+  MenuProduct,
+  MenuProductRequest,
+  OrderStatus,
   OrderRequestItem,
   PlaceOrderRequest,
   Product,
@@ -17,6 +23,25 @@ export interface CafeteriaGateway {
   getProducts: (token?: string) => Promise<Product[]>
   getCategories: (token?: string) => Promise<Category[]>
   getFeaturedProducts: (token: string) => Promise<Product[]>
+  getCashierOrders: (token: string) => Promise<CashierOrder[]>
+  getCashierProfile: (token: string) => Promise<CashierProfile>
+  updateOrderStatus: (
+    token: string,
+    orderId: number,
+    status: OrderStatus,
+  ) => Promise<CashierOrder>
+  getMenuProducts: (token: string) => Promise<MenuProduct[]>
+  getMenuCategories: (token: string) => Promise<MenuCategory[]>
+  createMenuProduct: (
+    token: string,
+    request: MenuProductRequest,
+  ) => Promise<MenuProduct>
+  updateMenuProduct: (
+    token: string,
+    productId: string,
+    request: MenuProductRequest,
+  ) => Promise<MenuProduct>
+  deleteMenuProduct: (token: string, productId: string) => Promise<void>
   placeOrder: (
     token: string,
     request: PlaceOrderRequest | OrderRequestItem[],
