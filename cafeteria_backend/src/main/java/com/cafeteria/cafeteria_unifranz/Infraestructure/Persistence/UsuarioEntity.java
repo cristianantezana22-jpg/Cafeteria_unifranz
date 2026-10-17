@@ -36,7 +36,6 @@ public class UsuarioEntity {
     private LocalDateTime eliminadoCuando;
 
     protected UsuarioEntity() {
-        // requerido por JPA
     }
 
     public Integer getId() {
