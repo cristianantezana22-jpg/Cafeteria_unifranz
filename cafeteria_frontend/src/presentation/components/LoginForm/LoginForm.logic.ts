@@ -1,15 +1,11 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-<<<<<<< HEAD
 import {
   loginCustomer,
   saveCustomerSession,
 } from '../../../infrastructure/api/cafeteria'
 import type { CustomerSession } from '../../../domain/models'
-=======
-import { loginCashier } from '../../../infrastructure/api/cafeteria'
->>>>>>> alan
 import { getRolePath } from '../../auth/routeAuth'
 
 export function useLoginForm() {
@@ -25,7 +21,6 @@ export function useLoginForm() {
     setIsLoading(true)
 
     try {
-<<<<<<< HEAD
       if (email.trim().toLowerCase().includes('pantalla')) {
         const session: CustomerSession = {
           token: 'development-kiosk-session',
@@ -43,9 +38,7 @@ export function useLoginForm() {
       }
 
       const session = await loginCustomer(email, password)
-=======
-      const session = await loginCashier(email, password)
->>>>>>> alan
+      saveCustomerSession(session)
       await navigate({ to: getRolePath(session.role) })
     } catch (error) {
       setError(
@@ -67,8 +60,4 @@ export function useLoginForm() {
     isLoading,
     handleSubmit,
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> alan

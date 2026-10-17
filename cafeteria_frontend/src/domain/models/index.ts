@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { PaymentMethod } from './Payment'
 
 export type { Category } from './Category'
@@ -6,15 +5,11 @@ export type { PaymentMethod } from './Payment'
 export type { ServiceMode } from './ServiceMode'
 
 export type Customer = {
-=======
-export type CashierUser = {
->>>>>>> alan
   id: string
   name: string
   email: string
 }
 
-<<<<<<< HEAD
 export type CustomerSession = {
   token: string
   customer: Customer
@@ -22,15 +17,6 @@ export type CustomerSession = {
 }
 
 export type UserRole = 'CLIENTE' | 'CAJERO' | 'ADMIN' | 'PANTALLA'
-=======
-export type CashierSession = {
-  token: string
-  user: CashierUser
-  role: UserRole
-}
-
-export type UserRole = 'CAJERO'
->>>>>>> alan
 
 export type Product = {
   id: string
@@ -42,7 +28,6 @@ export type Product = {
   featured: boolean
 }
 
-<<<<<<< HEAD
 export type OrderRequestItem = {
   productId: string
   quantity: number
@@ -69,7 +54,6 @@ export type CustomerOrder = {
   total: number
   createdAt: string
 }
-=======
 export type MenuCategory = {
   id: number
   name: string
@@ -122,4 +106,3 @@ export type CashierOrder = {
   isCancellable: boolean
   items: CashierOrderItem[]
 }
->>>>>>> alan

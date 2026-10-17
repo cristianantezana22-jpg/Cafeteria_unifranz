@@ -8,8 +8,5 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Integ
 
     Optional<UsuarioEntity> findByEmailIgnoreCaseAndEliminadoCuandoIsNull(String email);
 
-<<<<<<< HEAD
     boolean existsByEmailIgnoreCase(String email);
-=======
->>>>>>> alan
 }

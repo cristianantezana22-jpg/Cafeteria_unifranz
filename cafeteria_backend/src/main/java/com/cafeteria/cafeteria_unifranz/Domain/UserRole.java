@@ -1,6 +1,5 @@
 package com.cafeteria.cafeteria_unifranz.Domain;
 
-<<<<<<< HEAD
 import java.util.Optional;
 
 public enum UserRole {
@@ -19,8 +18,4 @@ public enum UserRole {
             return Optional.empty();
         }
     }
-=======
-public enum UserRole {
-    CAJERO
->>>>>>> alan
 }

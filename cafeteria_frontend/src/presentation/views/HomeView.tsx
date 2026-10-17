@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import { Link } from '@tanstack/react-router'
-=======
->>>>>>> alan
 import brandLogo from '../assets/pink-paper-logo.svg'
 import { LoginForm } from '../components/LoginForm/LoginForm'
 
@@ -31,7 +28,6 @@ export function HomeView() {
           <p className="eyebrow accent">TU MESA TE ESPERA</p>
           <h1>Un gusto verte.</h1>
           <p className="auth-intro">
-<<<<<<< HEAD
             Ingresa a tu espacio y descubre lo que preparamos hoy.
           </p>
 
@@ -44,15 +40,6 @@ export function HomeView() {
 
           <p className="auth-footer">
             CAFETERÍA UNIFRANZ<span>·</span> BUENO, SIMPLE Y HECHO AQUÍ
-=======
-            Ingresa a tu espacio de caja para gestionar pedidos y menú.
-          </p>
-
-          <LoginForm />
-
-          <p className="auth-footer">
-            CAFETERÍA UNIFRANZ<span>·</span> ACCESO PARA PERSONAL DE CAJA
->>>>>>> alan
           </p>
         </div>
       </section>

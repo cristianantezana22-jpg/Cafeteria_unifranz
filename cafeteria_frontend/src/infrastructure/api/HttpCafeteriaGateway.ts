@@ -1,7 +1,6 @@
 import axios, { isAxiosError } from 'axios'
 import type { CafeteriaGateway } from '../../application/services/CafeteriaGateway'
 import type {
-<<<<<<< HEAD
   Category,
   CustomerOrder,
   CustomerSession,
@@ -19,25 +18,10 @@ const CATEGORIES_ENDPOINT = '/api/categories'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-=======
-  CashierBlock,
-  CashierOrder,
-  CashierProfile,
-  CashierSession,
-  MenuCategory,
-  MenuProduct,
-  MenuProductRequest,
-  OrderStatus,
-} from '../../domain/models'
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080',
->>>>>>> alan
   headers: { 'Content-Type': 'application/json' },
   timeout: 10_000,
 })
 
-<<<<<<< HEAD
 const sessions = new LocalSessionRepository()
 
 api.interceptors.request.use((config) => {
@@ -58,75 +42,12 @@ export class HttpApiError extends Error {
   }
 }
 
-=======
-type CashierProfileDto = {
-  bloque: CashierBlock
-  gestionaAlmuerzos: boolean
-}
-
-type CashierOrderDto = {
-  id: number
-  ticket: string
-  estado: OrderStatus
-  origen: string
-  cliente: string
-  metodoPago: string | null
-  estadoPago: string | null
-  total: number
-  creadoEn: string
-  almuerzo: boolean
-  editable: boolean
-  siguienteEstado: OrderStatus | null
-  cancelable: boolean
-  items: { nombre: string; cantidad: number; subtotal: number }[]
-}
-
-type MenuProductDto = {
-  id: number
-  name: string
-  description: string
-  price: number
-  category: string
-  categoryId: number
-  imageUrl: string
-  featured: boolean
-}
-
-function toCashierOrder(dto: CashierOrderDto): CashierOrder {
-  return {
-    id: dto.id,
-    ticket: dto.ticket,
-    status: dto.estado,
-    origin: dto.origen,
-    customerName: dto.cliente,
-    paymentMethod: dto.metodoPago,
-    paymentStatus: dto.estadoPago,
-    total: Number(dto.total),
-    createdAt: dto.creadoEn,
-    isLunch: dto.almuerzo,
-    isEditable: dto.editable,
-    nextStatus: dto.siguienteEstado,
-    isCancellable: dto.cancelable,
-    items: dto.items.map((item) => ({
-      name: item.nombre,
-      quantity: item.cantidad,
-      subtotal: Number(item.subtotal),
-    })),
-  }
-}
-
-function toMenuProduct(dto: MenuProductDto): MenuProduct {
-  return { ...dto, id: String(dto.id), price: Number(dto.price) }
-}
-
->>>>>>> alan
 function bearer(token: string) {
   return { Authorization: `Bearer ${token}` }
 }
 
 // Convierte los errores de axios en mensajes legibles para la UI.
 function toReadableError(error: unknown, fallback: string): Error {
-<<<<<<< HEAD
   if (isAxiosError<{ detail?: string; message?: string }>(error)) {
     if (!error.response) {
       return new HttpApiError(
@@ -137,29 +58,14 @@ function toReadableError(error: unknown, fallback: string): Error {
       error.response.data?.message ?? error.response.data?.detail ?? fallback,
       error.response.status,
     )
-=======
-  if (isAxiosError<{ message?: string }>(error)) {
-    if (!error.response) {
-      return new Error(
-        'No se pudo conectar con el servidor. Verifica que el backend esté activo.',
-      )
-    }
-    return new Error(error.response.data?.message ?? fallback)
->>>>>>> alan
   }
   return new Error(fallback)
 }
 
 export class HttpCafeteriaGateway implements CafeteriaGateway {
-<<<<<<< HEAD
   async login(email: string, password: string): Promise<CustomerSession> {
     try {
       const response = await api.post<CustomerSession>('/api/auth/login', {
-=======
-  async login(email: string, password: string): Promise<CashierSession> {
-    try {
-      const response = await api.post<CashierSession>('/api/auth/login', {
->>>>>>> alan
         email,
         password,
       })
@@ -172,7 +78,6 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
-<<<<<<< HEAD
   async register(
     name: string,
     email: string,
@@ -197,20 +102,11 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
         token ? { headers: bearer(token) } : undefined,
       )
       return response.data.map(mapProduct)
-=======
-  async getMenuProducts(token: string): Promise<MenuProduct[]> {
-    try {
-      const response = await api.get<MenuProductDto[]>('/api/cajero/menu/products', {
-        headers: bearer(token),
-      })
-      return response.data.map(toMenuProduct)
->>>>>>> alan
     } catch (error) {
       throw toReadableError(error, 'No se pudo cargar el menú.')
     }
   }
 
-<<<<<<< HEAD
   async getCategories(token?: string): Promise<Category[]> {
     try {
       const response = await api.get<CategoryResponse[]>(
@@ -221,20 +117,11 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
         id: String(category.id),
         nombre: category.name,
       }))
-=======
-  async getMenuCategories(token: string): Promise<MenuCategory[]> {
-    try {
-      const response = await api.get<MenuCategory[]>('/api/cajero/menu/categories', {
-        headers: bearer(token),
-      })
-      return response.data
->>>>>>> alan
     } catch (error) {
       throw toReadableError(error, 'No se pudieron cargar las categorías.')
     }
   }
 
-<<<<<<< HEAD
   async getFeaturedProducts(token: string): Promise<Product[]> {
     return this.getProducts(token)
   }
@@ -321,91 +208,3 @@ function mapOrder(order: OrderResponse): CustomerOrder {
     createdAt: order.createdAt,
   }
 }
-=======
-  async createMenuProduct(
-    token: string,
-    product: MenuProductRequest,
-  ): Promise<MenuProduct> {
-    try {
-      const response = await api.post<MenuProductDto>(
-        '/api/cajero/menu/products',
-        product,
-        { headers: bearer(token) },
-      )
-      return toMenuProduct(response.data)
-    } catch (error) {
-      throw toReadableError(error, 'No se pudo agregar el producto.')
-    }
-  }
-
-  async updateMenuProduct(
-    token: string,
-    productId: string,
-    product: MenuProductRequest,
-  ): Promise<MenuProduct> {
-    try {
-      const response = await api.put<MenuProductDto>(
-        `/api/cajero/menu/products/${productId}`,
-        product,
-        { headers: bearer(token) },
-      )
-      return toMenuProduct(response.data)
-    } catch (error) {
-      throw toReadableError(error, 'No se pudo actualizar el producto.')
-    }
-  }
-
-  async deleteMenuProduct(token: string, productId: string): Promise<void> {
-    try {
-      await api.delete(`/api/cajero/menu/products/${productId}`, {
-        headers: bearer(token),
-      })
-    } catch (error) {
-      throw toReadableError(error, 'No se pudo eliminar el producto.')
-    }
-  }
-
-  async getCashierProfile(token: string): Promise<CashierProfile> {
-    try {
-      const response = await api.get<CashierProfileDto>('/api/cajero/perfil', {
-        headers: bearer(token),
-      })
-      return {
-        block: response.data.bloque,
-        canManageLunch: response.data.gestionaAlmuerzos,
-      }
-    } catch (error) {
-      throw toReadableError(error, 'No se pudo cargar el perfil de caja.')
-    }
-  }
-
-  async getCashierOrders(token: string): Promise<CashierOrder[]> {
-    try {
-      const response = await api.get<CashierOrderDto[]>('/api/cajero/pedidos', {
-        headers: bearer(token),
-      })
-      return response.data.map(toCashierOrder)
-    } catch (error) {
-      throw toReadableError(error, 'No se pudieron cargar los pedidos.')
-    }
-  }
-
-  async updateOrderStatus(
-    token: string,
-    orderId: number,
-    status: OrderStatus,
-  ): Promise<CashierOrder> {
-    try {
-      const response = await api.patch<CashierOrderDto>(
-        `/api/cajero/pedidos/${orderId}/estado`,
-        { estado: status },
-        { headers: bearer(token) },
-      )
-      return toCashierOrder(response.data)
-    } catch (error) {
-      throw toReadableError(error, 'No se pudo actualizar el pedido.')
-    }
-  }
-
-}
->>>>>>> alan
