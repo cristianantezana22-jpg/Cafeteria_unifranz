@@ -1,15 +1,19 @@
 import type {
   CustomerOrder,
   CustomerSession,
+  Category,
   OrderRequestItem,
+  PlaceOrderRequest,
   Product,
 } from '../../domain/models'
 
 export interface CafeteriaGateway {
   login: (email: string, password: string) => Promise<CustomerSession>
+  getProducts: (token?: string) => Promise<Product[]>
+  getCategories: (token?: string) => Promise<Category[]>
   getFeaturedProducts: (token: string) => Promise<Product[]>
   placeOrder: (
     token: string,
-    items: OrderRequestItem[],
+    request: PlaceOrderRequest | OrderRequestItem[],
   ) => Promise<CustomerOrder>
 }

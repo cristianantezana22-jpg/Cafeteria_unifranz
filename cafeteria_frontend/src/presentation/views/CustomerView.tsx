@@ -140,11 +140,17 @@ export function CustomerView() {
             <p className="eyebrow accent">DE NUESTRA COCINA</p>
             <h2 id="featured-title">Favoritos de la casa<span>.</span></h2>
           </div>
-          <span className="product-count">{products.length.toString().padStart(2, '0')} PRODUCTOS</span>
+          <span className="product-count">
+            {products.length.toString().padStart(2, '0')} PRODUCTOS
+          </span>
         </div>
 
         {isLoading && <p className="status-message">Preparando la vitrina…</p>}
-        {hasError && <p className="status-message error-message" role="alert">No pudimos cargar el menú. Comprueba que el servidor esté activo.</p>}
+        {hasError && (
+          <p className="status-message error-message" role="alert">
+            No pudimos cargar el menú. Comprueba que el servidor esté activo.
+          </p>
+        )}
         {!isLoading && !hasError && products.length === 0 && (
           <p className="status-message">Pronto habrá nuevos favoritos en la vitrina.</p>
         )}
@@ -185,7 +191,9 @@ export function CustomerView() {
         )}
 
         {cartItems.length === 0 ? (
-          <p className="cart-empty">Tu carrito está vacío. Agrega algo rico desde la vitrina.</p>
+          <p className="cart-empty">
+            Tu carrito está vacío. Agrega algo rico desde la vitrina.
+          </p>
         ) : (
           <>
             <div className="cart-list">
@@ -217,7 +225,10 @@ export function CustomerView() {
         )}
       </section>
 
-      <footer className="customer-footer"><span>CAFETERÍA UNIFRANZ</span><span>UN BUEN LUGAR PARA QUEDARSE.</span></footer>
+      <footer className="customer-footer">
+        <span>CAFETERÍA UNIFRANZ</span>
+        <span>UN BUEN LUGAR PARA QUEDARSE.</span>
+      </footer>
     </main>
   )
 }

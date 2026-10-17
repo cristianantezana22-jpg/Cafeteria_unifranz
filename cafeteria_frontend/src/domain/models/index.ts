@@ -1,3 +1,9 @@
+import type { PaymentMethod } from './Payment'
+
+export type { Category } from './Category'
+export type { PaymentMethod } from './Payment'
+export type { ServiceMode } from './ServiceMode'
+
 export type Customer = {
   id: string
   name: string
@@ -27,8 +33,16 @@ export type OrderRequestItem = {
   quantity: number
 }
 
+export type PlaceOrderRequest = {
+  items: OrderRequestItem[]
+  serviceMode: 'COMER_AQUI' | 'LLEVAR'
+  paymentMethod: PaymentMethod
+  totalAmount: number
+}
+
 export type CustomerOrder = {
   id: string
+  orderNumber?: string
   customerId: string
   items: {
     productId: string

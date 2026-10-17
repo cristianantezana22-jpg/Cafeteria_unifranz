@@ -1,0 +1,131 @@
+.screensaver {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  overflow: hidden;
+  padding: 24px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgb(110 19 93 / 35%), transparent 44%),
+    radial-gradient(ellipse at 84% 88%, rgb(39 93 69 / 24%), transparent 40%),
+    #111416;
+  cursor: pointer;
+}
+
+.screensaver:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -8px;
+}
+
+.screensaver-card {
+  z-index: 1;
+  display: flex;
+  width: min(100%, 610px);
+  min-height: 390px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 34px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 8%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 30%);
+  text-align: center;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.screensaver-brand,
+.screensaver-hint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.screensaver-brand {
+  color: rgb(255 255 255 / 70%);
+}
+
+.screensaver-icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  margin: 35px 0 16px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 36%);
+  border-radius: 50%;
+  color: #f0b8e7;
+}
+
+.screensaver-icon svg {
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.2;
+}
+
+.screensaver-card h1 {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(36px, 7vw, 58px);
+  font-weight: 400;
+}
+
+.screensaver-card p {
+  margin: 14px 0 30px;
+  color: rgb(255 255 255 / 76%);
+  font-size: clamp(14px, 2.5vw, 18px);
+}
+
+.screensaver-hint {
+  color: #f0b8e7;
+}
+
+.screensaver-orb {
+  position: absolute;
+  width: 260px;
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 22%), rgb(166 2 151 / 18%) 36%, transparent 72%);
+  filter: blur(1px);
+  animation: screensaver-float 9s ease-in-out infinite alternate;
+}
+
+.screensaver-orb-one {
+  top: -95px;
+  left: 9%;
+}
+
+.screensaver-orb-two {
+  right: 8%;
+  bottom: -105px;
+  width: 340px;
+  animation-delay: -3s;
+}
+
+.screensaver-orb-three {
+  top: 15%;
+  right: 24%;
+  width: 100px;
+  animation-delay: -6s;
+}
+
+@keyframes screensaver-float {
+  to {
+    transform: translate3d(0, 22px, 0) scale(1.06);
+  }
+}
+
+@media (max-width: 520px) {
+  .screensaver-card {
+    min-height: 340px;
+    padding: 38px 22px;
+  }
+}
