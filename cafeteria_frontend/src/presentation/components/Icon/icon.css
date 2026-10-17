@@ -1,0 +1,8 @@
+.icon {
+  flex: none;
+  color: #111;
+}
+
+.icon--inverse {
+  color: #fff;
+}
