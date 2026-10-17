@@ -25,7 +25,6 @@ public class UsuarioRepositoryAdapter implements UsuarioRepository {
                         entity.getEmail(),
                         entity.getPasswordHash(),
                         entity.getRol()));
-                .map(this::toDomain);
     }
 
     @Override

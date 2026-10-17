@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import { Link } from '@tanstack/react-router'
->>>>>>> cristian
 import brandLogo from '../assets/pink-paper-logo.svg'
 import { LoginForm } from '../components/LoginForm/LoginForm'
 
