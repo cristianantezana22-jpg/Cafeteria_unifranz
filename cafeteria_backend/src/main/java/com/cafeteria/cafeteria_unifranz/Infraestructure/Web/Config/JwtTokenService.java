@@ -55,12 +55,21 @@ public class JwtTokenService implements TokenService {
                     .parseSignedClaims(token)
                     .getPayload();
 
+<<<<<<< HEAD
             return UserRole.fromDatabaseValue(claims.get("role", String.class))
                     .map(role -> new AuthenticatedUser(
                             Integer.valueOf(claims.getSubject()),
                             claims.get("email", String.class),
                             role));
         } catch (JwtException | IllegalArgumentException ex) {
+=======
+            UserRole role = UserRole.valueOf(claims.get("role", String.class));
+            return Optional.of(new AuthenticatedUser(
+                    Integer.valueOf(claims.getSubject()),
+                    claims.get("email", String.class),
+                    role));
+        } catch (JwtException | IllegalArgumentException | NullPointerException ex) {
+>>>>>>> alan
             return Optional.empty();
         }
     }

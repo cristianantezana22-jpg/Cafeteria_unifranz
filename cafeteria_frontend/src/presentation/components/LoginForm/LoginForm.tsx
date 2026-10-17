@@ -42,7 +42,11 @@ export function LoginForm() {
         variant="primary"
         disabled={isLoading}
       >
+<<<<<<< HEAD
         {isLoading ? 'Ingresando…' : 'Entrar a mi cuenta'}
+=======
+        {isLoading ? 'Ingresando…' : 'Entrar a caja'}
+>>>>>>> alan
         <span aria-hidden="true">↗</span>
       </Button>
     </form>

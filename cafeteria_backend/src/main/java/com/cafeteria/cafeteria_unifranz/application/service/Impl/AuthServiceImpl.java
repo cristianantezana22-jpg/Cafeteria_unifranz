@@ -34,7 +34,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        // Mismo error para correo inexistente y contraseña errónea (no revelar cuál falló).
         Usuario usuario = usuarioRepository.findActiveByEmail(request.email().trim())
                 .orElseThrow(InvalidCredentialsException::new);
 
@@ -44,9 +43,6 @@ public class AuthServiceImpl implements AuthService {
 
         UserRole role = UserRole.fromDatabaseValue(usuario.rol())
                 .orElseThrow(() -> new RoleNotAllowedException(usuario.rol()));
-
-        String token = tokenService.generate(
-                new AuthenticatedUser(usuario.id(), usuario.email(), role));
 
         return createLoginResponse(usuario, role);
     }
@@ -73,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
                 new AuthenticatedUser(usuario.id(), usuario.email(), role));
         return new LoginResponse(
                 token,
-                new LoginResponse.Customer(
+                new LoginResponse.User(
                         String.valueOf(usuario.id()),
                         usuario.nombreCompleto(),
                         usuario.email()),

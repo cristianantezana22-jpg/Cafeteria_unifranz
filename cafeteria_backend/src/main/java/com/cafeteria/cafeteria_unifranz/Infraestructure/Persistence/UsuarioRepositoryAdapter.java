@@ -19,6 +19,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepository {
     @Override
     public Optional<Usuario> findActiveByEmail(String email) {
         return jpaRepository.findByEmailIgnoreCaseAndEliminadoCuandoIsNull(email)
+<<<<<<< HEAD
                 .map(entity -> new Usuario(
                         entity.getId(),
                         entity.getNombreCompleto(),
@@ -40,6 +41,9 @@ public class UsuarioRepositoryAdapter implements UsuarioRepository {
                 usuario.passwordHash(),
                 usuario.rol()));
         return toDomain(entity);
+=======
+                .map(this::toDomain);
+>>>>>>> alan
     }
 
     private Usuario toDomain(UsuarioEntity entity) {

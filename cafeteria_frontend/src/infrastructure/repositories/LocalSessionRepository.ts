@@ -1,13 +1,21 @@
 import type { SessionRepository } from '../../application/services/SessionRepository'
+<<<<<<< HEAD
 import type { CustomerSession, UserRole } from '../../domain/models'
 
 const SESSION_KEY = 'cafeteria.customer-session'
 const USER_ROLES: UserRole[] = ['CLIENTE', 'CAJERO', 'ADMIN', 'PANTALLA']
+=======
+import type { CashierSession, UserRole } from '../../domain/models'
+
+const SESSION_KEY = 'cafeteria.cashier-session'
+const USER_ROLES: UserRole[] = ['CAJERO']
+>>>>>>> alan
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+<<<<<<< HEAD
 function isCustomerSession(value: unknown): value is CustomerSession {
   if (!isRecord(value)) return false
 
@@ -19,6 +27,19 @@ function isCustomerSession(value: unknown): value is CustomerSession {
     typeof customer.id === 'string' &&
     typeof customer.name === 'string' &&
     typeof customer.email === 'string' &&
+=======
+function isCashierSession(value: unknown): value is CashierSession {
+  if (!isRecord(value)) return false
+
+  const user = value.user
+  if (!isRecord(user)) return false
+
+  return (
+    typeof value.token === 'string' &&
+    typeof user.id === 'string' &&
+    typeof user.name === 'string' &&
+    typeof user.email === 'string' &&
+>>>>>>> alan
     USER_ROLES.some((role) => role === value.role)
   )
 }
@@ -30,7 +51,11 @@ function getStorage(): Storage | null {
 }
 
 export class LocalSessionRepository implements SessionRepository {
+<<<<<<< HEAD
   get(): CustomerSession | null {
+=======
+  get(): CashierSession | null {
+>>>>>>> alan
     const storage = getStorage()
     if (!storage) return null
 
@@ -39,7 +64,11 @@ export class LocalSessionRepository implements SessionRepository {
 
     try {
       const session: unknown = JSON.parse(stored)
+<<<<<<< HEAD
       if (isCustomerSession(session)) return session
+=======
+      if (isCashierSession(session)) return session
+>>>>>>> alan
       this.clear()
       return null
     } catch {
@@ -48,7 +77,11 @@ export class LocalSessionRepository implements SessionRepository {
     }
   }
 
+<<<<<<< HEAD
   save(session: CustomerSession): void {
+=======
+  save(session: CashierSession): void {
+>>>>>>> alan
     getStorage()?.setItem(SESSION_KEY, JSON.stringify(session))
   }
 

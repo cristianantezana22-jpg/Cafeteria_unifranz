@@ -8,7 +8,10 @@ public interface UsuarioRepository {
     /** Busca un usuario no eliminado (eliminado_cuando IS NULL) por correo. */
     Optional<Usuario> findActiveByEmail(String email);
 
+<<<<<<< HEAD
     boolean existsByEmail(String email);
 
     Usuario save(Usuario usuario);
+=======
+>>>>>>> alan
 }
