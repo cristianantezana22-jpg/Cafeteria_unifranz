@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import { Link } from '@tanstack/react-router'
+>>>>>>> cristian
 import brandLogo from '../assets/pink-paper-logo.svg'
 import { LoginForm } from '../components/LoginForm/LoginForm'
 
@@ -31,6 +35,11 @@ export function HomeView() {
           </p>
 
           <LoginForm />
+          <p className="auth-switch">¿Aún no tienes cuenta?</p>
+          <Link className="button button--outlined auth-register-button" to="/registro">
+            Regístrate
+            <span aria-hidden="true">↗</span>
+          </Link>
 
           <p className="auth-footer">
             CAFETERÍA UNIFRANZ<span>·</span> BUENO, SIMPLE Y HECHO AQUÍ

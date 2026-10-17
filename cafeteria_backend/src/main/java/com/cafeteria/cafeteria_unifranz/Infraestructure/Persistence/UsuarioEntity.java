@@ -36,6 +36,14 @@ public class UsuarioEntity {
     private LocalDateTime eliminadoCuando;
 
     protected UsuarioEntity() {
+        // requerido por JPA
+    }
+
+    public UsuarioEntity(String nombreCompleto, String email, String passwordHash, String rol) {
+        this.nombreCompleto = nombreCompleto;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.rol = rol;
     }
 
     public Integer getId() {

@@ -3,6 +3,10 @@
   margin-top: 37px;
 }
 
+.register-form {
+  margin-top: 24px;
+}
+
 .login-form label {
   margin-bottom: 9px;
   font-size: 12px;
@@ -26,4 +30,20 @@
 .login-form input:focus {
   border-color: var(--forest);
   box-shadow: 0 0 0 3px rgb(222 27 185 / 11%);
+}
+
+.auth-switch {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--forest);
+  font-weight: 700;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
 }
