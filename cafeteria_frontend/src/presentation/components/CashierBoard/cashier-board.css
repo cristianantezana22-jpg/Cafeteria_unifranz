@@ -1,0 +1,165 @@
+.cashier-page {
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.cashier-section {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 48px 7.4% 75px;
+}
+
+.cashier-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  color: #111;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cashier-refresh:hover {
+  color: #fff;
+  background: #111;
+}
+
+.cashier-refresh:hover .icon {
+  color: #fff;
+}
+
+.cashier-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cashier-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cashier-filter span {
+  display: grid;
+  min-width: 22px;
+  height: 20px;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: #111;
+  font-size: 10px;
+}
+
+.cashier-filter.is-active {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
+.cashier-filter.is-active span {
+  background: var(--forest);
+}
+
+.cashier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 19px;
+}
+
+.cashier-error {
+  min-height: 0;
+  margin: 0 0 18px;
+  place-items: start;
+}
+
+.cashier-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+@media (max-width: 1100px) {
+  .cashier-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .cashier-section {
+    padding: 32px 20px 56px;
+  }
+
+  .cashier-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cashier-header-actions {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cashier-menu-link {
+  display: inline-flex;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 3px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.cashier-menu-link:hover {
+  color: var(--forest-deep);
+  background: #fff;
+}
+
+.cashier-logout {
+  z-index: 1;
+  width: 170px;
+}
+
+@media (max-width: 680px) {
+  .cashier-header-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .cashier-menu-link {
+    min-height: 31px;
+    padding: 0 9px;
+    font-size: 9px;
+  }
+
+  .cashier-logout {
+    width: 130px;
+  }
+}
