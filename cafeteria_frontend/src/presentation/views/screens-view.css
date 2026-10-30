@@ -62,25 +62,6 @@
   letter-spacing: 2px;
 }
 
-.kiosk-service-badge {
-  display: inline-flex;
-  min-height: 39px;
-  align-items: center;
-  gap: 9px;
-  margin-top: 32px;
-  padding: 0 14px;
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 999px;
-  color: #f5d7ef;
-  background: rgb(255 255 255 / 7%);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.kiosk-service-badge span:first-child {
-  font-size: 17px;
-}
-
 .kiosk-order-heading {
   display: flex;
   align-items: center;

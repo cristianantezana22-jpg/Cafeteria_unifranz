@@ -33,12 +33,6 @@ export function CustomerView() {
     (total, item) => total + Number(item.product.price) * item.quantity,
     0,
   )
-  const today = new Intl.DateTimeFormat('es-BO', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-  }).format(new Date())
-
   useEffect(() => {
     let isMounted = true
 
@@ -126,15 +120,20 @@ export function CustomerView() {
         onLogout={handleLogout}
       />
 
-      <section className="welcome-band">
-        <div>
-          <p className="eyebrow accent">{today.toLocaleUpperCase('es-BO')}</p>
-          <h1>Hola, {session?.customer.name.split(' ')[0]}.</h1>
-          <p className="welcome-copy">Tu próximo favorito está más cerca de lo que crees.</p>
+      <section className="welcome-band" aria-label="Banner de bienvenida">
+        <div className="welcome-band-content">
+          <p className="eyebrow accent hero-kicker">VIERNES, 30 DE OCTUBRE • LA PAZ, BOLIVIA</p>
+          <h1>Hola, {session?.customer.name.split(' ')[0]}. Descubre el sabor del verdadero café.</h1>
+          <p className="welcome-copy">
+            Tu próximo favorito recién preparado te está esperando.
+          </p>
+          <a className="welcome-cta" href="#featured">
+            Explorar Favoritos
+          </a>
         </div>
       </section>
 
-      <section className="featured-section" aria-labelledby="featured-title">
+      <section id="featured" className="featured-section" aria-labelledby="featured-title">
         <div className="section-heading">
           <div>
             <p className="eyebrow accent">DE NUESTRA COCINA</p>

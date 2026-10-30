@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/orders", "/api/orders/**",
                                 "/api/pedidos", "/api/pedidos/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders/**", "/api/pedidos/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);

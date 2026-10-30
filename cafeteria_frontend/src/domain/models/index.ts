@@ -2,7 +2,6 @@ import type { PaymentMethod } from './Payment'
 
 export type { Category } from './Category'
 export type { PaymentMethod } from './Payment'
-export type { ServiceMode } from './ServiceMode'
 
 export type Customer = {
   id: string

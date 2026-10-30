@@ -1,12 +1,20 @@
 .cashier-menu-dashboard {
-  --cashier-menu-ink: #252536;
-  --cashier-menu-muted: #878797;
-  --cashier-menu-line: #eeedf2;
-  --cashier-menu-purple: #a60297;
+  --cashier-menu-bg: #121214;
+  --cashier-menu-panel: #1e1e24;
+  --cashier-menu-panel-alt: #18181b;
+  --cashier-menu-ink: #f4f4f5;
+  --cashier-menu-subtle: #a1a1aa;
+  --cashier-menu-muted: #d4d4d8;
+  --cashier-menu-line: rgba(255, 255, 255, 0.08);
+  --cashier-menu-purple: #a855f7;
+  --cashier-menu-pink: #ec4899;
+  --cashier-menu-glow: 0 0 15px rgba(236, 72, 153, 0.2);
+  --cashier-menu-success: #34d399;
+  --cashier-menu-warning: #fbbf24;
   display: flex;
   min-height: 100vh;
   color: var(--cashier-menu-ink);
-  background: #f8f8fb;
+  background: var(--cashier-menu-bg);
   font-family: 'DM Sans', sans-serif;
 }
 
@@ -19,7 +27,7 @@
   flex-direction: column;
   padding: 28px 18px 18px;
   border-right: 1px solid var(--cashier-menu-line);
-  background: #fff;
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.98), rgba(18, 18, 20, 0.96));
 }
 
 .cashier-menu-brand {
@@ -35,9 +43,11 @@
   width: 42px;
   height: 42px;
   place-items: center;
+  border: 1px solid rgba(236, 72, 153, 0.35);
   border-radius: 14px;
   color: #fff;
-  background: var(--cashier-menu-purple);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: var(--cashier-menu-glow);
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: 25px;
 }
@@ -54,7 +64,7 @@
 
 .cashier-menu-brand small {
   margin-top: 5px;
-  color: var(--cashier-menu-muted);
+  color: var(--cashier-menu-subtle);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -62,7 +72,7 @@
 
 .cashier-menu-nav-label {
   padding: 0 12px 10px;
-  color: #a3a2af;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.25px;
@@ -79,40 +89,42 @@
   align-items: center;
   gap: 12px;
   padding: 0 12px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 10px;
-  color: #737384;
+  color: rgba(255, 255, 255, 0.72);
   background: transparent;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
   text-align: left;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
 .cashier-menu-nav-item > span:first-child {
   width: 20px;
-  color: #9998a6;
+  color: rgba(255, 255, 255, 0.66);
   font-size: 17px;
   text-align: center;
 }
 
 .cashier-menu-nav-item:hover,
 .cashier-menu-nav-item.is-active {
-  color: var(--cashier-menu-purple);
-  background: #fbf0fa;
+  color: #fff;
+  border-color: rgba(236, 72, 153, 0.28);
+  background: rgba(168, 85, 247, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(236, 72, 153, 0.15);
 }
 
 .cashier-menu-nav-item.is-active > span:first-child {
-  color: var(--cashier-menu-purple);
+  color: #f9a8d4;
 }
 
 .cashier-menu-nav-count {
   margin-left: auto;
   padding: 3px 7px;
-  border-radius: 7px;
-  color: #858494;
-  background: #f1f0f5;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.06);
   font-size: 10px;
 }
 
@@ -134,8 +146,8 @@
   height: 36px;
   place-items: center;
   border-radius: 12px;
-  color: #7c3281;
-  background: #f5e6f5;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(236, 72, 153, 0.6));
   font-size: 13px;
   font-weight: 700;
 }
@@ -154,7 +166,7 @@
 }
 
 .cashier-menu-profile-copy small {
-  color: var(--cashier-menu-muted);
+  color: var(--cashier-menu-subtle);
   font-size: 10px;
 }
 
@@ -164,9 +176,9 @@
   align-items: center;
   gap: 11px;
   padding: 11px 9px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 9px;
-  color: #858494;
+  color: rgba(255, 255, 255, 0.7);
   background: transparent;
   cursor: pointer;
   font-size: 11px;
@@ -174,14 +186,16 @@
 }
 
 .cashier-menu-logout:hover {
-  color: #a63e54;
-  background: #fff2f3;
+  color: #fff;
+  border-color: rgba(236, 72, 153, 0.2);
+  background: rgba(236, 72, 153, 0.08);
 }
 
 .cashier-menu-main {
   width: calc(100% - 248px);
   min-height: 100vh;
   margin-left: 248px;
+  background: var(--cashier-menu-bg);
 }
 
 .cashier-menu-topbar {
@@ -191,24 +205,25 @@
   justify-content: space-between;
   padding: 0 clamp(24px, 4.1vw, 62px);
   border-bottom: 1px solid var(--cashier-menu-line);
-  background: #fff;
+  background: rgba(24, 24, 27, 0.8);
+  backdrop-filter: blur(8px);
 }
 
 .cashier-menu-breadcrumb {
-  color: #9998a6;
+  color: rgba(255, 255, 255, 0.68);
   font-size: 11px;
 }
 
 .cashier-menu-breadcrumb span {
   padding: 0 8px;
-  color: #d1cfd8;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .cashier-menu-topbar-date {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #858494;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 10px;
 }
 
@@ -217,7 +232,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #41b783;
+  background: var(--cashier-menu-success);
 }
 
 .cashier-menu-content {
@@ -236,7 +251,7 @@
 
 .cashier-menu-eyebrow {
   margin: 0 0 8px;
-  color: var(--cashier-menu-purple);
+  color: #f9a8d4;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -244,7 +259,7 @@
 
 .cashier-menu-page-heading h1 {
   margin: 0;
-  color: #282738;
+  color: var(--cashier-menu-ink);
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: clamp(29px, 3vw, 36px);
   font-weight: 400;
@@ -253,7 +268,7 @@
 
 .cashier-menu-page-subtitle {
   margin: 8px 0 0;
-  color: var(--cashier-menu-muted);
+  color: var(--cashier-menu-subtle);
   font-size: 12px;
 }
 
@@ -266,22 +281,22 @@
   gap: 8px;
   padding: 0 16px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 700;
-  transition: background 150ms ease, transform 150ms ease;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
 .cashier-menu-primary-button {
   color: #fff;
-  background: var(--cashier-menu-purple);
-  box-shadow: 0 5px 13px rgb(166 2 151 / 13%);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
 }
 
 .cashier-menu-primary-button:hover:not(:disabled) {
-  background: #8f0082;
   transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.32);
 }
 
 .cashier-menu-primary-button > span {
@@ -296,9 +311,9 @@
 }
 
 .cashier-menu-secondary-button {
-  border-color: #e8e6ee;
-  color: #686778;
-  background: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .cashier-menu-stats {
@@ -316,9 +331,9 @@
   align-content: start;
   padding: 17px 19px;
   border: 1px solid var(--cashier-menu-line);
-  border-radius: 13px;
-  background: #fff;
-  box-shadow: 0 3px 12px rgb(38 33 56 / 2%);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(39, 39, 42, 0.96), rgba(30, 30, 36, 0.9));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
 .cashier-menu-stat-icon {
@@ -328,27 +343,28 @@
   grid-row: span 2;
   place-items: center;
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 15px;
 }
 
 .stat-icon-violet {
-  color: #9a3c94;
-  background: #f8e9f6;
+  color: #e9d5ff;
+  background: rgba(168, 85, 247, 0.2);
 }
 
 .stat-icon-peach {
-  color: #c17c50;
-  background: #fff0e7;
+  color: #fcd6a3;
+  background: rgba(236, 72, 153, 0.12);
 }
 
 .stat-icon-green {
-  color: #399a71;
-  background: #e8f6ee;
+  color: #bbf7d0;
+  background: rgba(16, 185, 129, 0.14);
 }
 
 .cashier-menu-stat-label {
   align-self: center;
-  color: #8c8b99;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: .8px;
@@ -358,7 +374,7 @@
 .cashier-menu-stat-card > strong {
   grid-column: 1 / -1;
   margin-top: 12px;
-  color: #302f40;
+  color: #fff;
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: 28px;
   font-weight: 400;
@@ -368,16 +384,16 @@
 .cashier-menu-stat-card > small {
   grid-column: 1 / -1;
   margin-top: 6px;
-  color: #9695a2;
+  color: rgba(255, 255, 255, 0.55);
   font-size: 10px;
 }
 
 .cashier-menu-panel {
   overflow: hidden;
   border: 1px solid var(--cashier-menu-line);
-  border-radius: 13px;
-  background: #fff;
-  box-shadow: 0 3px 12px rgb(38 33 56 / 2%);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(30, 30, 36, 0.96), rgba(18, 18, 20, 0.96));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
 .cashier-menu-panel-heading {
@@ -386,23 +402,24 @@
   justify-content: space-between;
   gap: 16px;
   padding: 19px 21px 17px;
+  border-bottom: 1px solid var(--cashier-menu-line);
 }
 
 .cashier-menu-panel-heading h2 {
   margin: 0;
-  color: #302f40;
+  color: #fff;
   font-size: 14px;
   font-weight: 700;
 }
 
 .cashier-menu-panel-heading p {
   margin: 5px 0 0;
-  color: #92919e;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 10px;
 }
 
 .cashier-menu-results-count {
-  color: #8d8c99;
+  color: rgba(255, 255, 255, 0.66);
   font-size: 10px;
   white-space: nowrap;
 }
@@ -412,19 +429,20 @@
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  padding: 0 21px 16px;
+  padding: 18px 21px 16px;
 }
 
 .cashier-menu-search {
   display: flex;
-  width: min(320px, 100%);
-  height: 36px;
+  width: min(320px, 100%); 
+  height: 40px;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
-  border: 1px solid #eae9ef;
-  border-radius: 8px;
-  color: #aaa9b5;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(39, 39, 42, 0.9);
 }
 
 .cashier-menu-search > span {
@@ -435,32 +453,32 @@
   width: 100%;
   border: 0;
   outline: 0;
-  color: var(--cashier-menu-ink);
+  color: #fff;
   background: transparent;
   font-size: 10px;
 }
 
 .cashier-menu-search input::placeholder {
-  color: #aaa9b5;
+  color: #71717a;
 }
 
 .cashier-menu-filter {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #9998a5;
+  color: var(--cashier-menu-subtle);
   font-size: 10px;
 }
 
 .cashier-menu-filter select,
 .cashier-menu-form select {
-  min-height: 36px;
+  min-height: 38px;
   padding: 0 27px 0 10px;
-  border: 1px solid #eae9ef;
-  border-radius: 8px;
-  outline-color: #d98dd4;
-  color: #5e5d6e;
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  outline-color: rgba(236, 72, 153, 0.7);
+  color: #f4f4f5;
+  background: rgba(39, 39, 42, 0.9);
   font: inherit;
   font-size: 10px;
 }
@@ -478,10 +496,10 @@
 .cashier-menu-table th {
   height: 37px;
   padding: 0 14px;
-  border-top: 1px solid #f0eff3;
-  border-bottom: 1px solid #f0eff3;
-  color: #9998a5;
-  background: #fbfbfd;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--cashier-menu-subtle);
+  background: rgba(24, 24, 27, 0.85);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: .65px;
@@ -501,10 +519,15 @@
 .cashier-menu-table td {
   height: 60px;
   padding: 8px 14px;
-  border-bottom: 1px solid #f2f1f5;
-  color: #686777;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 10px;
   white-space: nowrap;
+  transition: background 150ms ease;
+}
+
+.cashier-menu-table tbody tr:hover td {
+  background: rgba(39, 39, 42, 0.7);
 }
 
 .cashier-menu-table tbody tr:last-child td {
@@ -515,7 +538,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #383747;
+  color: #fff;
 }
 
 .cashier-menu-product-avatar {
@@ -524,22 +547,24 @@
   height: 31px;
   place-items: center;
   border-radius: 9px;
-  color: #9a3c94;
-  background: #f8e9f6;
+  color: #f9a8d4;
+  background: rgba(236, 72, 153, 0.12);
+  border: 1px solid rgba(236, 72, 153, 0.18);
   font-size: 12px;
   font-weight: 700;
 }
 
 .cashier-menu-category-tag {
   padding: 5px 8px;
-  border-radius: 6px;
-  color: #777587;
-  background: #f5f4f8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.04);
   font-size: 9px;
 }
 
 .cashier-menu-price {
-  color: #3d3c4b !important;
+  color: #fff !important;
   font-weight: 700;
 }
 
@@ -548,9 +573,10 @@
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  border-radius: 6px;
-  color: #4e936f;
-  background: #edf8f1;
+  border-radius: 999px;
+  color: #bbf7d0;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.16);
   font-size: 9px;
 }
 
@@ -560,12 +586,13 @@
 }
 
 .cashier-menu-badge.is-featured {
-  color: #9b5d28;
-  background: #fff4e6;
+  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(251, 191, 36, 0.18);
 }
 
 .cashier-menu-badge.is-featured > span {
-  background: #eba545;
+  background: #fbbf24;
 }
 
 .cashier-menu-actions-heading {
@@ -583,24 +610,24 @@
   width: 29px;
   height: 29px;
   place-items: center;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
-  color: #848392;
-  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   font-size: 14px;
 }
 
 .cashier-menu-icon-button:hover:not(:disabled) {
-  border-color: #eee2ef;
-  color: var(--cashier-menu-purple);
-  background: #fbf0fa;
+  border-color: rgba(236, 72, 153, 0.25);
+  color: #fff;
+  background: rgba(236, 72, 153, 0.12);
 }
 
 .cashier-menu-icon-button.is-delete:hover:not(:disabled) {
-  border-color: #f7e0e3;
-  color: #bd5160;
-  background: #fff2f3;
+  border-color: rgba(251, 113, 133, 0.26);
+  color: #fecdd3;
+  background: rgba(244, 63, 94, 0.1);
 }
 
 .cashier-menu-icon-button:disabled {
@@ -614,7 +641,7 @@
   align-content: center;
   justify-items: center;
   padding: 28px;
-  color: #8f8e9c;
+  color: rgba(255, 255, 255, 0.62);
   font-size: 11px;
   text-align: center;
 }
@@ -626,13 +653,13 @@
   margin-bottom: 11px;
   place-items: center;
   border-radius: 13px;
-  color: var(--cashier-menu-purple);
-  background: #fbf0fa;
+  color: #fff;
+  background: rgba(168, 85, 247, 0.2);
   font-size: 18px;
 }
 
 .cashier-menu-empty-state strong {
-  color: #494858;
+  color: #fff;
   font-size: 12px;
 }
 
@@ -644,9 +671,9 @@
   margin-top: 13px;
   padding: 8px 12px;
   border: 0;
-  border-radius: 7px;
-  color: var(--cashier-menu-purple);
-  background: #fbf0fa;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
   cursor: pointer;
   font-size: 10px;
   font-weight: 700;
@@ -660,14 +687,14 @@
   margin-bottom: 14px;
   padding: 11px 13px;
   border: 1px solid;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 11px;
 }
 
 .cashier-menu-alert-error {
-  border-color: #f1c8ce;
-  color: #9d3c49;
-  background: #fff5f6;
+  border-color: rgba(251, 113, 133, 0.25);
+  color: #fecdd3;
+  background: rgba(244, 63, 94, 0.08);
 }
 
 .cashier-menu-alert-error button {
@@ -681,9 +708,9 @@
 }
 
 .cashier-menu-alert-success {
-  border-color: #c4e6d1;
-  color: #357451;
-  background: #f1fbf5;
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #bbf7d0;
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .cashier-menu-category-panel {
@@ -702,8 +729,9 @@
   align-items: center;
   gap: 12px;
   padding: 15px;
-  border: 1px solid #eeedf2;
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .cashier-menu-category-icon {
@@ -716,18 +744,18 @@
 }
 
 .category-icon-0 {
-  color: #9a3c94;
-  background: #f8e9f6;
+  color: #f9a8d4;
+  background: rgba(236, 72, 153, 0.12);
 }
 
 .category-icon-1 {
-  color: #c17c50;
-  background: #fff0e7;
+  color: #fcd6a3;
+  background: rgba(168, 85, 247, 0.12);
 }
 
 .category-icon-2 {
-  color: #399a71;
-  background: #e8f6ee;
+  color: #bbf7d0;
+  background: rgba(16, 185, 129, 0.12);
 }
 
 .cashier-menu-category-card > div {
@@ -736,12 +764,12 @@
 }
 
 .cashier-menu-category-card strong {
-  color: #494858;
+  color: #fff;
   font-size: 11px;
 }
 
 .cashier-menu-category-card span:not(.cashier-menu-category-icon) {
-  color: #9695a2;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 9px;
 }
 
@@ -753,17 +781,17 @@
   overflow-y: auto;
   place-items: center;
   padding: 20px;
-  background: rgb(34 30 43 / 43%);
-  backdrop-filter: blur(3px);
+  background: rgba(9, 9, 11, 0.58);
+  backdrop-filter: blur(4px);
 }
 
 .cashier-menu-modal {
   width: min(100%, 450px);
   padding: 24px;
-  border: 1px solid rgb(255 255 255 / 70%);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 20px 70px rgb(35 28 47 / 20%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(24, 24, 27, 0.98);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
 }
 
 .cashier-menu-modal-heading {
@@ -775,7 +803,7 @@
 
 .cashier-menu-modal-heading h2 {
   margin: 0;
-  color: #302f40;
+  color: #fff;
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: 25px;
   font-weight: 400;
@@ -786,10 +814,10 @@
   width: 30px;
   height: 30px;
   place-items: center;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  color: #8a8997;
-  background: #f7f6f9;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   font-size: 21px;
 }
@@ -802,7 +830,7 @@
 .cashier-menu-form > label:not(.cashier-menu-featured-toggle) {
   display: grid;
   gap: 7px;
-  color: #555465;
+  color: rgba(255, 255, 255, 0.78);
   font-size: 10px;
   font-weight: 700;
 }
@@ -812,17 +840,17 @@
   width: 100%;
   height: 40px;
   padding: 0 11px;
-  border: 1px solid #e8e7ed;
-  border-radius: 8px;
-  outline-color: #d98dd4;
-  color: #4e4d5b;
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  outline-color: rgba(236, 72, 153, 0.7);
+  color: #fff;
+  background: rgba(39, 39, 42, 0.9);
   font: inherit;
   font-size: 11px;
 }
 
 .cashier-menu-form input::placeholder {
-  color: #b0afba;
+  color: #71717a;
 }
 
 .cashier-menu-featured-toggle {
@@ -830,9 +858,10 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #efedf2;
-  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .cashier-menu-featured-toggle input {
@@ -847,12 +876,12 @@
 }
 
 .cashier-menu-featured-toggle strong {
-  color: #555465;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 10px;
 }
 
 .cashier-menu-featured-toggle small {
-  color: #92919e;
+  color: rgba(255, 255, 255, 0.62);
   font-size: 9px;
 }
 

@@ -1,5 +1,5 @@
 .button {
-  border-radius: 3px;
+  border-radius: 14px;
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -15,14 +15,16 @@
   padding: 0 17px;
   border: 0;
   color: white;
-  background: var(--forest);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
   font-size: 13px;
-  transition: background 150ms ease, transform 150ms ease;
+  transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .button--primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: var(--forest-deep);
+  background: linear-gradient(135deg, #9333ea, #db2777);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.35);
 }
 
 .button--primary:disabled,
@@ -42,16 +44,17 @@
   justify-content: space-between;
   margin-top: 13px;
   padding: 10px 12px;
-  border: 1px solid var(--forest);
-  color: var(--forest);
-  background: #fff;
+  border: 1px solid rgba(236, 72, 153, 0.35);
+  color: #f9a8d4;
+  background: rgba(236, 72, 153, 0.08);
   font-size: 11px;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
 }
 
 .button--outlined:hover {
   color: #fff;
-  background: var(--forest);
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
 }
 
 .button--outlined > span {
@@ -68,12 +71,14 @@
   padding: 0 15px;
   border: 0;
   color: #fff;
-  background: var(--forest);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
   font-size: 12px;
 }
 
 .button--checkout:hover:not(:disabled) {
-  background: var(--forest-deep);
+  background: linear-gradient(135deg, #9333ea, #db2777);
 }
 
 @media (max-width: 680px) {

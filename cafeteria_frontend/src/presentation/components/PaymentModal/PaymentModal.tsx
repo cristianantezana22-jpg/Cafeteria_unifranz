@@ -1,20 +1,20 @@
 import { useState } from 'react'
-import type { PaymentMethod } from '../../../domain/models/Payment'
 import './payment-modal.css'
 
 type PaymentModalProps = {
   onClose: () => void
-  onConfirm: (method: PaymentMethod) => void | Promise<void>
+  onConfirm: () => void | Promise<void>
+  totalAmount: number
   error?: string
 }
 
-export function PaymentModal({ onClose, onConfirm, error }: PaymentModalProps) {
+export function PaymentModal({ onClose, onConfirm, totalAmount, error }: PaymentModalProps) {
   const [isConfirming, setIsConfirming] = useState(false)
 
-  async function handleConfirm(method: PaymentMethod) {
+  async function handleConfirm() {
     setIsConfirming(true)
     try {
-      await onConfirm(method)
+      await onConfirm()
     } finally {
       setIsConfirming(false)
     }
@@ -28,7 +28,7 @@ export function PaymentModal({ onClose, onConfirm, error }: PaymentModalProps) {
       }}
     >
       <section
-        className="payment-modal"
+        className="payment-modal payment-modal-qr"
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-modal-title"
@@ -44,56 +44,31 @@ export function PaymentModal({ onClose, onConfirm, error }: PaymentModalProps) {
             <path d="m6 6 12 12M18 6 6 18" />
           </svg>
         </button>
-        <p className="eyebrow accent">UN ÚLTIMO PASO</p>
-        <h2 id="payment-modal-title">¿Cómo quieres pagar?</h2>
-        <p className="payment-modal-copy">Elige tu método de pago para confirmar el pedido.</p>
+
+        <p className="eyebrow accent">PAGO</p>
+        <h2 id="payment-modal-title">Pague aquí</h2>
+        <p className="payment-modal-total">Monto a pagar: Bs. {Number(totalAmount).toFixed(2)}</p>
+        <div className="payment-modal-qr-wrap">
+          <img src="/qr_paga.png" alt="Código QR para pagar" className="payment-modal-qr-image" />
+        </div>
         {error && <p className="payment-modal-error" role="alert">{error}</p>}
-        <div className="payment-modal-options">
+
+        <div className="payment-modal-actions">
           <button
-            className="payment-option"
             type="button"
-            onClick={() => void handleConfirm('QR')}
+            className="payment-modal-cancel"
+            onClick={onClose}
             disabled={isConfirming}
           >
-            <span className="payment-option-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" />
-                <path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" />
-              </svg>
-            </span>
-            <span><strong>{isConfirming ? 'Procesando…' : 'Pagar con QR'}</strong><small>Escanea y paga desde tu banco</small></span>
-            <span className="payment-option-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
-            </span>
+            Cancelar
           </button>
           <button
-            className="payment-option"
             type="button"
-            onClick={() => void handleConfirm('EFECTIVO')}
+            className="payment-modal-confirm"
+            onClick={() => void handleConfirm()}
             disabled={isConfirming}
           >
-            <span className="payment-option-icon payment-option-text-icon" aria-hidden="true">Bs</span>
-            <span><strong>Pagar en efectivo</strong><small>Paga en caja al recoger tu pedido</small></span>
-            <span className="payment-option-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
-            </span>
-          </button>
-          <button
-            className="payment-option"
-            type="button"
-            onClick={() => void handleConfirm('TARJETA')}
-            disabled={isConfirming}
-          >
-            <span className="payment-option-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <rect x="3" y="5" width="18" height="14" rx="2" />
-                <path d="M3 10h18M7 15h4" />
-              </svg>
-            </span>
-            <span><strong>Pagar con tarjeta</strong><small>Débito o crédito en caja</small></span>
-            <span className="payment-option-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
-            </span>
+            {isConfirming ? 'Procesando…' : 'Hecho'}
           </button>
         </div>
       </section>

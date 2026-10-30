@@ -1,6 +1,18 @@
 .product-item {
   min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(39, 39, 42, 0.9), rgba(30, 30, 36, 0.96));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: arrive 420ms both;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.product-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(236, 72, 153, 0.32);
+  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.12);
 }
 
 .product-item:nth-child(2) { animation-delay: 60ms; }
@@ -11,7 +23,8 @@
   position: relative;
   aspect-ratio: 1 / 0.94;
   overflow: hidden;
-  background: #e8ebe2;
+  border-radius: 14px;
+  background: #1b1b1f;
 }
 
 .product-image-wrap img {
@@ -22,7 +35,7 @@
 }
 
 .product-item:hover .product-image-wrap img {
-  transform: scale(1.035);
+  transform: scale(1.045);
 }
 
 .product-index {
@@ -34,8 +47,8 @@
   height: 27px;
   place-items: center;
   border-radius: 50%;
-  color: var(--forest-deep);
-  background: rgb(255 255 255 / 92%);
+  color: #fff;
+  background: rgba(18, 18, 20, 0.8);
   font-size: 9px;
   font-weight: 700;
 }
@@ -45,8 +58,10 @@
   right: 10px;
   bottom: 10px;
   padding: 7px 9px;
-  color: var(--forest-deep);
-  background: rgb(255 255 255 / 94%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: #fdf2f8;
+  background: rgba(236, 72, 153, 0.18);
   font-size: 9px;
   font-weight: 700;
 }
@@ -60,6 +75,7 @@
 
 .product-details h3 {
   margin: 0;
+  color: #f4f4f5;
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: 18px;
   font-weight: 400;
@@ -68,7 +84,7 @@
 
 .product-details p {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: #a1a1aa;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -76,7 +92,7 @@
 .product-price {
   flex: 0 0 auto;
   padding-top: 2px;
-  color: var(--forest);
+  color: #f9a8d4;
   font-size: 11px;
   white-space: nowrap;
 }

@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { Category } from '../../domain/models/Category'
-import type { CustomerOrder, Product } from '../../domain/models'
-import type { PaymentMethod } from '../../domain/models/Payment'
-import type { ServiceMode } from '../../domain/models/ServiceMode'
+import type { CustomerOrder, PaymentMethod, Product } from '../../domain/models'
 import { CategoryFilter } from '../components/CategoryFilter/CategoryFilter'
 import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { Screensaver } from '../components/Screensaver/Screensaver'
-import { ServiceModeModal } from '../components/ServiceModeModal/ServiceModeModal'
 import { TicketConfirmationModal } from '../components/TicketConfirmationModal/TicketConfirmationModal'
 import { useIdleTimeout } from '../hooks/useIdleTimeout'
 import {
-  getCurrentSession,
   getCategories,
   getProducts,
   placeCustomerOrder,
@@ -24,8 +20,8 @@ type KioskCartItem = {
 
 type TicketState = {
   order: CustomerOrder
-  serviceMode: ServiceMode
   paymentMethod: PaymentMethod
+  ticketNumber: number
 }
 
 function formatPrice(price: number) {
@@ -33,13 +29,10 @@ function formatPrice(price: number) {
 }
 
 export function ScreensView() {
-  const session = getCurrentSession()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [cartItems, setCartItems] = useState<KioskCartItem[]>([])
   const [started, setStarted] = useState(false)
-  const [serviceMode, setServiceMode] = useState<ServiceMode | null>(null)
-  const [isServiceModeModalOpen, setIsServiceModeModalOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('all')
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [ticket, setTicket] = useState<TicketState | null>(null)
@@ -68,15 +61,13 @@ export function ScreensView() {
   function resetKiosk() {
     setTicket(null)
     setStarted(false)
-    setServiceMode(null)
-    setIsServiceModeModalOpen(false)
     setIsPaymentModalOpen(false)
     setCartItems([])
     setActiveCategory('all')
     setCheckoutError('')
   }
 
-  useIdleTimeout(resetKiosk, 30_000, started && ticket === null)
+  useIdleTimeout(resetKiosk, 10_000, started && !isPaymentModalOpen && !ticket)
 
   useEffect(() => {
     if (!ticket) return
@@ -141,12 +132,8 @@ export function ScreensView() {
     setCartItems((items) => items.filter((item) => item.product.id !== productId))
   }
 
-  async function confirmPayment(method: PaymentMethod) {
+  async function confirmPayment() {
     if (cartItems.length === 0 || isSubmittingOrder) return
-    if (!serviceMode) {
-      setCheckoutError('Elige si tu pedido es para comer aquí o para llevar.')
-      return
-    }
 
     setIsSubmittingOrder(true)
     setCheckoutError('')
@@ -156,14 +143,14 @@ export function ScreensView() {
           productId: product.id,
           quantity,
         })),
-        serviceMode: serviceMode === 'DINE_IN' ? 'COMER_AQUI' : 'LLEVAR',
-        paymentMethod: method,
+        serviceMode: 'COMER_AQUI',
+        paymentMethod: 'QR',
         totalAmount: cartTotal,
       })
       setTicket({
         order,
-        serviceMode,
-        paymentMethod: method,
+        paymentMethod: 'QR',
+        ticketNumber: Math.floor(Math.random() * 100) + 1,
       })
       setCartItems([])
       setIsPaymentModalOpen(false)
@@ -185,7 +172,6 @@ export function ScreensView() {
           onStart={() => {
             setCheckoutError('')
             setStarted(true)
-            setIsServiceModeModalOpen(true)
           }}
         />
       )}
@@ -195,21 +181,6 @@ export function ScreensView() {
           <div className="kiosk-brand" aria-label="Cafetería Unifranz">
             <span className="kiosk-brand-mark" aria-hidden="true">C</span>
             <span><strong>CAFETERÍA</strong><small>UNIFRANZ</small></span>
-          </div>
-          <div className="kiosk-service-badge">
-            <span aria-hidden="true">
-              {serviceMode === 'DINE_IN' ? (
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M5 8h14l-1.2 12H6.2L5 8Z" />
-                  <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-                </svg>
-              )}
-            </span>
-            <span>{serviceMode === 'DINE_IN' ? 'Comer aquí' : 'Para llevar'}</span>
           </div>
           <div className="kiosk-order-heading">
             <div>
@@ -284,12 +255,6 @@ export function ScreensView() {
       <section className="kiosk-menu-panel" aria-labelledby="kiosk-menu-title">
         <header className="kiosk-menu-header">
           <div>
-            <p className="kiosk-overline">
-              BIENVENIDO
-              {session?.customer.name
-                ? `, ${session.customer.name.split(' ')[0].toLocaleUpperCase('es-BO')}`
-                : ''}
-            </p>
             <h2 id="kiosk-menu-title">¿Qué se te antoja?</h2>
             <p>Elige algo rico para disfrutar hoy.</p>
           </div>
@@ -359,32 +324,27 @@ export function ScreensView() {
       {started && isPaymentModalOpen && (
         <PaymentModal
           onClose={() => {
-            if (!isSubmittingOrder) setIsPaymentModalOpen(false)
+            if (!isSubmittingOrder) {
+              setIsPaymentModalOpen(false)
+              setCartItems([])
+              setCheckoutError('')
+              setStarted(false)
+            }
           }}
           onConfirm={confirmPayment}
+          totalAmount={cartTotal}
           error={checkoutError}
         />
       )}
 
       {started && ticket && (
         <TicketConfirmationModal
-          orderNumber={ticket.order.orderNumber ?? ticket.order.id}
-          items={ticket.order.items}
-          total={Number(ticket.order.total)}
-          serviceMode={ticket.serviceMode}
-          paymentMethod={ticket.paymentMethod}
-          onDone={resetKiosk}
-        />
-      )}
-      {isServiceModeModalOpen && (
-        <ServiceModeModal
-          onSelect={(mode) => {
-            setServiceMode(mode)
-            setIsServiceModeModalOpen(false)
-          }}
-          onCancel={() => {
-            setIsServiceModeModalOpen(false)
+          orderNumber={ticket.ticketNumber}
+          onDone={() => {
+            setTicket(null)
+            setCartItems([])
             setStarted(false)
+            setCheckoutError('')
           }}
         />
       )}
