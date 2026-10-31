@@ -8,6 +8,10 @@ import { createUpdateCashierOrderStatus } from '../../application/use-cases/upda
 import { HttpCafeteriaGateway } from './HttpCafeteriaGateway'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 import type { CustomerSession, MenuProductRequest } from '../../domain/models'
+import { createGetCustomerOrderStatus } from '../../application/use-cases/getCustomerOrderStatus'
+import { createSetProductAvailability } from '../../application/use-cases/setProductAvailability'
+import { createSubscribeToRealtime } from '../../application/use-cases/subscribeToRealtime'
+import { SseRealtimeGateway } from './SseRealtimeGateway'
 
 const gateway = new HttpCafeteriaGateway()
 const sessions = new LocalSessionRepository()
@@ -21,6 +25,9 @@ export const updateCashierOrderStatus = createUpdateCashierOrderStatus(
   gateway,
   sessions,
 )
+export const setProductAvailability = createSetProductAvailability(gateway, sessions)
+export const getCustomerOrderStatus = createGetCustomerOrderStatus(gateway, sessions)
+export const subscribeToRealtime = createSubscribeToRealtime(new SseRealtimeGateway())
 function requireSessionToken() {
   const session = sessions.get()
   if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.')

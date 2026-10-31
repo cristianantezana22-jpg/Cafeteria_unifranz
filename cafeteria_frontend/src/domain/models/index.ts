@@ -26,6 +26,7 @@ export type Product = {
   category: string
   imageUrl: string
   featured: boolean
+  available: boolean
 }
 
 export type OrderRequestItem = {
@@ -105,4 +106,8 @@ export type CashierOrder = {
   nextStatus: OrderStatus | null
   isCancellable: boolean
   items: CashierOrderItem[]
+}
+export type ProductAvailability = {
+  id: string
+  available: boolean
 }

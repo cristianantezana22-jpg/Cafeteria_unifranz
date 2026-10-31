@@ -16,7 +16,12 @@ export function getRolePath(role: UserRole) {
 }
 
 export function requireRole(role: UserRole) {
+  if (role === 'CLIENTE' && typeof window === 'undefined') return
+
   const session = getCurrentSession()
-  if (!session) throw redirect({ to: '/' })
+  if (!session) {
+    if (role === 'CLIENTE') return
+    throw redirect({ to: '/' })
+  }
   if (session.role !== role) throw redirect({ to: getRolePath(session.role) })
 }

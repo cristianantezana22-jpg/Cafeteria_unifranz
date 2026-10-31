@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import com.cafeteria.cafeteria_unifranz.application.dto.MenuCategoryResponse;
 import com.cafeteria.cafeteria_unifranz.application.dto.MenuProductRequest;
 import com.cafeteria.cafeteria_unifranz.application.dto.MenuProductResponse;
+import com.cafeteria.cafeteria_unifranz.application.service.NotificadorTiempoReal;
 
 @RestController
 @RequestMapping("/api/cajero/menu")
@@ -29,15 +30,18 @@ import com.cafeteria.cafeteria_unifranz.application.dto.MenuProductResponse;
 public class CashierMenuController {
 
     private static final String SELECT_PRODUCTS = """
-            SELECT p.id, p.nombre, p.precio, p.menu_del_dia, c.id AS categoria_id, c.nombre AS categoria
+            SELECT p.id, p.nombre, p.precio, p.menu_del_dia, COALESCE(p.disponible, TRUE) AS disponible,
+                   c.id AS categoria_id, c.nombre AS categoria
             FROM productos p
             JOIN categorias c ON c.id = p.categoria_id
             """;
 
     private final JdbcClient jdbc;
+    private final NotificadorTiempoReal notificador;
 
-    public CashierMenuController(JdbcClient jdbc) {
+    public CashierMenuController(JdbcClient jdbc, NotificadorTiempoReal notificador) {
         this.jdbc = jdbc;
+        this.notificador = notificador;
     }
 
     @GetMapping("/products")
@@ -55,7 +59,7 @@ public class CashierMenuController {
                         resultSet.getString("nombre")))
                 .list();
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/products")
     public MenuProductResponse create(@Valid @RequestBody MenuProductRequest request) {
         requireCategory(request.categoryId());
@@ -90,9 +94,10 @@ public class CashierMenuController {
                 .param("id", id)
                 .update();
         if (updated == 0) throw notFound();
+        notificador.productosActualizados(id);
         return product(id);
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/products/{id}")
     public void delete(@PathVariable Integer id) {
         if (!productExists(id)) throw notFound();
@@ -148,7 +153,8 @@ public class CashierMenuController {
                 resultSet.getString("categoria"),
                 resultSet.getInt("categoria_id"),
                 "",
-                resultSet.getBoolean("menu_del_dia"));
+                resultSet.getBoolean("menu_del_dia"),
+                resultSet.getBoolean("disponible"));
     }
 
     private ResponseStatusException notFound() {

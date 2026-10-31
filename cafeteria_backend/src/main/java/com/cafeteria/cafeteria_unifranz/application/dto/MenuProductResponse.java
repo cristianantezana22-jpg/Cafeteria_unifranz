@@ -10,5 +10,6 @@ public record MenuProductResponse(
         String category,
         Integer categoryId,
         String imageUrl,
-        boolean featured) {
+        boolean featured,
+        boolean available) {
 }

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "productos")
@@ -31,6 +32,16 @@ public class ProductEntity {
 
     @Column(name = "imagen_url", nullable = false, length = 1000)
     private String imageUrl;
+
+    @Column(name = "disponible")
+    private Boolean available;
+
+    @Column(name = "modificado_por", length = 100)
+    private String modifiedBy;
+
+    @Column(name = "modificado_cuando")
+    private LocalDateTime modifiedAt;
+
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "categoria_id", nullable = false)
@@ -62,4 +73,12 @@ public class ProductEntity {
     public CategoryEntity getCategory() {
         return category;
     }
+    public boolean isAvailable() {
+    return available == null || available;
+    }
+    public void changeAvailability(boolean available, String modifiedBy) {
+    this.available = available;
+    this.modifiedBy = modifiedBy;
+    this.modifiedAt = LocalDateTime.now();
+    } 
 }

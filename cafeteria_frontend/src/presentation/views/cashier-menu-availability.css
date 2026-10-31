@@ -1,0 +1,8 @@
+.cashier-menu-badge.is-unavailable {
+  color: #b42318;
+  background: #fde8e8;
+}
+
+.cashier-menu-badge.is-unavailable > span {
+  background: #b42318;
+}

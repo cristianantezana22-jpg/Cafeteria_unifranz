@@ -16,6 +16,7 @@ const paymentLabels: Record<PaymentMethod, string> = {
   EFECTIVO: 'Efectivo',
   QR: 'QR',
   TARJETA: 'Tarjeta',
+  YA_PAGO: 'Ya pagó',
 }
 
 export function TicketConfirmationModal({

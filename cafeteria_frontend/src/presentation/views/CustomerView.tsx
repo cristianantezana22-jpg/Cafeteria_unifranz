@@ -1,16 +1,21 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import type { CustomerOrder, Product } from '../../domain/models'
+import type { CustomerOrder, OrderStatus, Product } from '../../domain/models'
+import type { PaymentMethod } from '../../domain/models/Payment'
 import { Button } from '../components/Button/Button'
 import { CartItem as CartItemRow } from '../components/CartItem/CartItem'
 import { CustomerHeader } from '../components/CustomerHeader/CustomerHeader'
+import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { ProductCard } from '../components/ProductCard/ProductCard'
 import {
+  getCustomerOrderStatus,
   getCurrentSession,
   getFeaturedProducts,
   logoutCustomer,
   placeCustomerOrder,
 } from '../../infrastructure/api/cafeteria'
+import { STATUS_LABELS } from '../components/CashierOrderCard/CashierOrderCard.logic'
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 
 type CartItem = {
   product: Product
@@ -19,15 +24,17 @@ type CartItem = {
 
 export function CustomerView() {
   const navigate = useNavigate()
-  const session = getCurrentSession()
+  const [session, setSession] = useState<ReturnType<typeof getCurrentSession>>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [hasError, setHasError] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
-  const [orderConfirmation, setOrderConfirmation] =
-    useState<CustomerOrder | null>(null)
+  const [orderConfirmation, setOrderConfirmation] = useState<CustomerOrder | null>(null)
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null)
+
   const cartItemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
   const cartTotal = cartItems.reduce(
     (total, item) => total + Number(item.product.price) * item.quantity,
@@ -38,6 +45,10 @@ export function CustomerView() {
     day: '2-digit',
     month: 'long',
   }).format(new Date())
+
+  useEffect(() => {
+    setSession(getCurrentSession())
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -58,12 +69,46 @@ export function CustomerView() {
     }
   }, [])
 
+  function refreshProducts() {
+    getFeaturedProducts()
+      .then((fresh) => {
+        setProducts(fresh)
+        const soldOut = cartItems.filter(
+          ({ product }) => fresh.find((p) => p.id === product.id)?.available === false,
+        )
+        if (soldOut.length > 0) {
+          setCartItems((items) =>
+            items.filter((i) => !soldOut.some((s) => s.product.id === i.product.id)),
+          )
+          setCheckoutError(
+            `Se agotó: ${soldOut.map((s) => s.product.name).join(', ')}. Lo quitamos de tu carrito.`,
+          )
+        }
+      })
+      .catch(() => {})
+  }
+
+  function refreshOrderStatus() {
+    if (!session || !orderConfirmation) return
+    getCustomerOrderStatus(orderConfirmation.id).then(setOrderStatus).catch(() => {})
+  }
+
+  useRealtimeEvents({
+    'products-changed': refreshProducts,
+    'orders-changed': refreshOrderStatus,
+    reconnected: () => {
+      refreshProducts()
+      refreshOrderStatus()
+    },
+  })
+
   function handleLogout() {
     logoutCustomer()
     void navigate({ to: '/' })
   }
 
   function handleAddToCart(product: Product) {
+    if (!product.available) return
     setOrderConfirmation(null)
     setCheckoutError('')
     setCartItems((items) => {
@@ -93,20 +138,32 @@ export function CustomerView() {
     setCartItems((items) => items.filter((item) => item.product.id !== productId))
   }
 
-  async function handleCheckout() {
+  function handleCheckout() {
+    if (cartItems.length === 0 || isSubmittingOrder) return
+
+    setCheckoutError('')
+    setIsPaymentModalOpen(true)
+  }
+
+  async function confirmPayment(method: PaymentMethod) {
     if (cartItems.length === 0 || isSubmittingOrder) return
 
     setIsSubmittingOrder(true)
     setCheckoutError('')
     try {
-      const order = await placeCustomerOrder(
-        cartItems.map(({ product, quantity }) => ({
+      const order = await placeCustomerOrder({
+        items: cartItems.map(({ product, quantity }) => ({
           productId: product.id,
           quantity,
         })),
-      )
+        serviceMode: 'COMER_AQUI',
+        paymentMethod: method,
+        totalAmount: cartTotal,
+      })
       setOrderConfirmation(order)
+      setOrderStatus('PENDIENTE')
       setCartItems([])
+      setIsPaymentModalOpen(false)
     } catch (error) {
       setCheckoutError(
         error instanceof Error
@@ -121,7 +178,7 @@ export function CustomerView() {
   return (
     <main className="customer-page">
       <CustomerHeader
-        customerName={session?.customer.name ?? ''}
+        customerName={session?.customer.name ?? 'Cliente'}
         cartItemCount={cartItemCount}
         onLogout={handleLogout}
       />
@@ -129,7 +186,7 @@ export function CustomerView() {
       <section className="welcome-band">
         <div>
           <p className="eyebrow accent">{today.toLocaleUpperCase('es-BO')}</p>
-          <h1>Hola, {session?.customer.name.split(' ')[0]}.</h1>
+          <h1>Hola, {session?.customer.name.split(' ')[0] ?? 'Cliente'}.</h1>
           <p className="welcome-copy">Tu próximo favorito está más cerca de lo que crees.</p>
         </div>
       </section>
@@ -182,8 +239,9 @@ export function CustomerView() {
 
         {orderConfirmation && (
           <p className="order-confirmation" role="status">
-            ¡Pedido confirmado! Código: {orderConfirmation.id.slice(0, 8).toUpperCase()}.
+            ¡Pedido confirmado! Código: {orderConfirmation.orderNumber ?? orderConfirmation.id}.
             Total: Bs {Number(orderConfirmation.total).toFixed(2)}
+            {orderStatus && ` · Estado: ${STATUS_LABELS[orderStatus]}`}
           </p>
         )}
         {checkoutError && (
@@ -229,6 +287,16 @@ export function CustomerView() {
         <span>CAFETERÍA UNIFRANZ</span>
         <span>UN BUEN LUGAR PARA QUEDARSE.</span>
       </footer>
+      {isPaymentModalOpen && (
+        <PaymentModal
+          variant="customer"
+          onClose={() => {
+            if (!isSubmittingOrder) setIsPaymentModalOpen(false)
+          }}
+          onConfirm={confirmPayment}
+          error={checkoutError}
+        />
+      )}
     </main>
   )
 }

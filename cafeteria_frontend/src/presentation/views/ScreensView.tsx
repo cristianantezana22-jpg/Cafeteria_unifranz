@@ -7,8 +7,10 @@ import { CategoryFilter } from '../components/CategoryFilter/CategoryFilter'
 import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { Screensaver } from '../components/Screensaver/Screensaver'
 import { ServiceModeModal } from '../components/ServiceModeModal/ServiceModeModal'
+import { SoldOutBadge } from '../components/SoldOutBadge/SoldOutBadge'
 import { TicketConfirmationModal } from '../components/TicketConfirmationModal/TicketConfirmationModal'
 import { useIdleTimeout } from '../hooks/useIdleTimeout'
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 import {
   getCurrentSession,
   getCategories,
@@ -65,6 +67,19 @@ export function ScreensView() {
       ? products
       : products.filter((product) => product.category === selectedCategory?.nombre)
 
+  function refreshProducts() {
+    getProducts()
+      .then((fresh) => {
+        setProducts(fresh)
+        setCartItems((items) =>
+          items.filter(({ product }) => fresh.find((p) => p.id === product.id)?.available !== false),
+        )
+      })
+      .catch(() => {})
+  }
+
+  useRealtimeEvents({ 'products-changed': refreshProducts, reconnected: refreshProducts })
+
   function resetKiosk() {
     setTicket(null)
     setStarted(false)
@@ -113,6 +128,7 @@ export function ScreensView() {
   }, [])
 
   function addToCart(product: Product) {
+    if (!product.available) return
     setCheckoutError('')
     setCartItems((items) => {
       const currentItem = items.find((item) => item.product.id === product.id)
@@ -189,175 +205,179 @@ export function ScreensView() {
           }}
         />
       )}
-      {started && <main className="kiosk-screen">
-      <aside className="kiosk-order-panel" aria-label="Tu pedido">
-        <div className="kiosk-order-top">
-          <div className="kiosk-brand" aria-label="Cafetería Unifranz">
-            <span className="kiosk-brand-mark" aria-hidden="true">C</span>
-            <span><strong>CAFETERÍA</strong><small>UNIFRANZ</small></span>
-          </div>
-          <div className="kiosk-service-badge">
-            <span aria-hidden="true">
-              {serviceMode === 'DINE_IN' ? (
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" />
-                </svg>
+      {started && (
+        <main className="kiosk-screen">
+          <aside className="kiosk-order-panel" aria-label="Tu pedido">
+            <div className="kiosk-order-top">
+              <div className="kiosk-brand" aria-label="Cafetería Unifranz">
+                <span className="kiosk-brand-mark" aria-hidden="true">C</span>
+                <span><strong>CAFETERÍA</strong><small>UNIFRANZ</small></span>
+              </div>
+              <div className="kiosk-service-badge">
+                <span aria-hidden="true">
+                  {serviceMode === 'DINE_IN' ? (
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M5 8h14l-1.2 12H6.2L5 8Z" />
+                      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                    </svg>
+                  )}
+                </span>
+                <span>{serviceMode === 'DINE_IN' ? 'Comer aquí' : 'Para llevar'}</span>
+              </div>
+              <div className="kiosk-order-heading">
+                <div>
+                  <p className="kiosk-overline">TU SELECCIÓN</p>
+                  <h1>Tu pedido</h1>
+                </div>
+                <span className="kiosk-item-count">{itemCount}</span>
+              </div>
+            </div>
+
+            <div className="kiosk-cart-list" aria-live="polite">
+              {cartItems.length === 0 ? (
+                <div className="kiosk-empty-cart">
+                  <span aria-hidden="true">＋</span>
+                  <strong>Aún no agregaste productos</strong>
+                  <p>Explora el menú y toca “Agregar” para comenzar.</p>
+                </div>
               ) : (
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M5 8h14l-1.2 12H6.2L5 8Z" />
-                  <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-                </svg>
-              )}
-            </span>
-            <span>{serviceMode === 'DINE_IN' ? 'Comer aquí' : 'Para llevar'}</span>
-          </div>
-          <div className="kiosk-order-heading">
-            <div>
-              <p className="kiosk-overline">TU SELECCIÓN</p>
-              <h1>Tu pedido</h1>
-            </div>
-            <span className="kiosk-item-count">{itemCount}</span>
-          </div>
-        </div>
-
-        <div className="kiosk-cart-list" aria-live="polite">
-          {cartItems.length === 0 ? (
-            <div className="kiosk-empty-cart">
-              <span aria-hidden="true">＋</span>
-              <strong>Aún no agregaste productos</strong>
-              <p>Explora el menú y toca “Agregar” para comenzar.</p>
-            </div>
-          ) : (
-            cartItems.map(({ product, quantity }) => (
-              <article className="kiosk-cart-item" key={product.id}>
-                <div className="kiosk-cart-item-info">
-                  <strong>{product.name}</strong>
-                  <span>{formatPrice(Number(product.price))} c/u</span>
-                  <div className="kiosk-quantity-control" aria-label={`Cantidad de ${product.name}`}>
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(product.id, -1)}
-                      aria-label={`Quitar una unidad de ${product.name}`}
-                    >−</button>
-                    <span>{quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(product.id, 1)}
-                      aria-label={`Agregar una unidad de ${product.name}`}
-                    >+</button>
-                  </div>
-                </div>
-                <div className="kiosk-cart-item-end">
-                  <strong>{formatPrice(Number(product.price) * quantity)}</strong>
-                  <button
-                    className="kiosk-remove-item"
-                    type="button"
-                    onClick={() => removeFromCart(product.id)}
-                    aria-label={`Eliminar ${product.name}`}
-                  >Eliminar</button>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-
-        <div className="kiosk-order-footer">
-          <div className="kiosk-total-row">
-            <span>Total</span>
-            <strong>{formatPrice(cartTotal)}</strong>
-          </div>
-          <button
-            className="kiosk-pay-button"
-            type="button"
-            onClick={() => {
-              setCheckoutError('')
-              setIsPaymentModalOpen(true)
-            }}
-            disabled={cartItems.length === 0 || isSubmittingOrder}
-          >
-            PAGAR AHORA <span aria-hidden="true">→</span>
-          </button>
-          <p className="kiosk-footer-note">Pago seguro · Hecho con cariño</p>
-        </div>
-      </aside>
-
-      <section className="kiosk-menu-panel" aria-labelledby="kiosk-menu-title">
-        <header className="kiosk-menu-header">
-          <div>
-            <p className="kiosk-overline">
-              BIENVENIDO
-              {session?.customer.name
-                ? `, ${session.customer.name.split(' ')[0].toLocaleUpperCase('es-BO')}`
-                : ''}
-            </p>
-            <h2 id="kiosk-menu-title">¿Qué se te antoja?</h2>
-            <p>Elige algo rico para disfrutar hoy.</p>
-          </div>
-          <span className="kiosk-menu-header-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32" focusable="false">
-              <path d="M7 12h16v7a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-7Z" />
-              <path d="M23 14h2a4 4 0 0 1 0 8h-3M10 5c0 2 2 2 2 4m5-4c0 2 2 2 2 4" />
-              <path d="M5 29h22" />
-            </svg>
-          </span>
-        </header>
-
-        <div className="kiosk-menu-scroll">
-          <CategoryFilter
-            categories={filterCategories}
-            activeCategory={activeCategory}
-            onSelect={setActiveCategory}
-          />
-
-          {isLoading ? (
-            <p className="kiosk-menu-status" role="status">Cargando…</p>
-          ) : catalogError ? (
-            <p className="kiosk-menu-status" role="alert">{catalogError}</p>
-          ) : visibleProducts.length === 0 ? (
-            <p className="kiosk-menu-status" role="status">
-              No hay productos disponibles en el menú actual.
-            </p>
-          ) : (
-            <div className="kiosk-product-grid">
-              {visibleProducts.map((product) => (
-                <article className="kiosk-product-card" key={product.id}>
-                  <div className="kiosk-product-image">
-                    <img
-                      src={product.imageUrl}
-                      alt=""
-                      loading="lazy"
-                      onError={(event) => {
-                        event.currentTarget.style.visibility = 'hidden'
-                      }}
-                    />
-                    <span className="kiosk-product-category">{product.category}</span>
-                  </div>
-                  <div className="kiosk-product-info">
-                    <div>
-                      <h3>{product.name}</h3>
-                      <p>{product.description}</p>
+                cartItems.map(({ product, quantity }) => (
+                  <article className="kiosk-cart-item" key={product.id}>
+                    <div className="kiosk-cart-item-info">
+                      <strong>{product.name}</strong>
+                      <span>{formatPrice(Number(product.price))} c/u</span>
+                      <div className="kiosk-quantity-control" aria-label={`Cantidad de ${product.name}`}>
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(product.id, -1)}
+                          aria-label={`Quitar una unidad de ${product.name}`}
+                        >−</button>
+                        <span>{quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(product.id, 1)}
+                          aria-label={`Agregar una unidad de ${product.name}`}
+                        >+</button>
+                      </div>
                     </div>
-                    <div className="kiosk-product-action">
-                      <strong>{formatPrice(Number(product.price))}</strong>
+                    <div className="kiosk-cart-item-end">
+                      <strong>{formatPrice(Number(product.price) * quantity)}</strong>
                       <button
+                        className="kiosk-remove-item"
                         type="button"
-                        onClick={() => addToCart(product)}
-                        aria-label={`Agregar ${product.name} al pedido`}
-                      >
-                        Agregar <span aria-hidden="true">+</span>
-                      </button>
+                        onClick={() => removeFromCart(product.id)}
+                        aria-label={`Eliminar ${product.name}`}
+                      >Eliminar</button>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ))
+              )}
             </div>
-          )}
-        </div>
-      </section>
 
-      </main>}
+            <div className="kiosk-order-footer">
+              <div className="kiosk-total-row">
+                <span>Total</span>
+                <strong>{formatPrice(cartTotal)}</strong>
+              </div>
+              <button
+                className="kiosk-pay-button"
+                type="button"
+                onClick={() => {
+                  setCheckoutError('')
+                  setIsPaymentModalOpen(true)
+                }}
+                disabled={cartItems.length === 0 || isSubmittingOrder}
+              >
+                PAGAR AHORA <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </aside>
+
+          <section className="kiosk-menu-panel" aria-labelledby="kiosk-menu-title">
+            <header className="kiosk-menu-header">
+              <div>
+                <p className="kiosk-overline">
+                  BIENVENIDO
+                  {session?.customer.name
+                    ? `, ${session.customer.name.split(' ')[0].toLocaleUpperCase('es-BO')}`
+                    : ''}
+                </p>
+                <h2 id="kiosk-menu-title">¿Qué se te antoja?</h2>
+                <p>Elige algo rico para disfrutar hoy.</p>
+              </div>
+              <span className="kiosk-menu-header-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false">
+                  <path d="M7 12h16v7a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-7Z" />
+                  <path d="M23 14h2a4 4 0 0 1 0 8h-3M10 5c0 2 2 2 2 4m5-4c0 2 2 2 2 4" />
+                  <path d="M5 29h22" />
+                </svg>
+              </span>
+            </header>
+
+            <div className="kiosk-menu-scroll">
+              <CategoryFilter
+                categories={filterCategories}
+                activeCategory={activeCategory}
+                onSelect={setActiveCategory}
+              />
+
+              {isLoading ? (
+                <p className="kiosk-menu-status" role="status">Cargando…</p>
+              ) : catalogError ? (
+                <p className="kiosk-menu-status" role="alert">{catalogError}</p>
+              ) : visibleProducts.length === 0 ? (
+                <p className="kiosk-menu-status" role="status">
+                  No hay productos disponibles en el menú actual.
+                </p>
+              ) : (
+                <div className="kiosk-product-grid">
+                  {visibleProducts.map((product) => (
+                    <article className={`kiosk-product-card${product.available ? '' : ' is-soldout'}`} key={product.id}>
+                      <div className="kiosk-product-image">
+                        <img
+                          src={product.imageUrl}
+                          alt=""
+                          loading="lazy"
+                          onError={(event) => {
+                            event.currentTarget.style.visibility = 'hidden'
+                          }}
+                        />
+                        {!product.available && <SoldOutBadge />}
+                        <span className="kiosk-product-category">{product.category}</span>
+                      </div>
+                      <div className="kiosk-product-info">
+                        <div>
+                          <h3>{product.name}</h3>
+                          <p>{product.description}</p>
+                        </div>
+                        <div className="kiosk-product-action">
+                          <strong>{formatPrice(Number(product.price))}</strong>
+                          <button
+                            type="button"
+                            disabled={!product.available}
+                            onClick={() => addToCart(product)}
+                            aria-label={`Agregar ${product.name} al pedido`}
+                          >
+                            {product.available ? <>Agregar <span aria-hidden="true">+</span></> : 'Producto agotado'}
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+      )}
+
       {started && isPaymentModalOpen && (
         <PaymentModal
+          variant="screen"
           onClose={() => {
             if (!isSubmittingOrder) setIsPaymentModalOpen(false)
           }}
@@ -376,6 +396,7 @@ export function ScreensView() {
           onDone={resetKiosk}
         />
       )}
+
       {isServiceModeModalOpen && (
         <ServiceModeModal
           onSelect={(mode) => {
