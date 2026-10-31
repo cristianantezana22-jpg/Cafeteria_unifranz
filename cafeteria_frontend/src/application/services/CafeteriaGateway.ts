@@ -15,6 +15,7 @@ import type {
 
 export interface CafeteriaGateway {
   login: (email: string, password: string) => Promise<CustomerSession>
+  loginWithGoogle: (credential: string) => Promise<CustomerSession>
   register: (
     name: string,
     email: string,

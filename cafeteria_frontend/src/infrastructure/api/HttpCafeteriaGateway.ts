@@ -85,6 +85,17 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
+  async loginWithGoogle(credential: string): Promise<CustomerSession> {
+    try {
+      const response = await api.post<AuthResponse>('/api/auth/google', {
+        credential,
+      })
+      return mapSession(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo iniciar sesión con Google.')
+    }
+  }
+
   async register(
     name: string,
     email: string,
