@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        // PERMITE EL ACCESO A TODAS LAS RUTAS DE ADMINISTRADOR (USUARIOS, PRODUCTOS, EMPLEADOS)
+                        .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products", "/api/products/**",
                                 "/api/categories", "/api/categories/**",
