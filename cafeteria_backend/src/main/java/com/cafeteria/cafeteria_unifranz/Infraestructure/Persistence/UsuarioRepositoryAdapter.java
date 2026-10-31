@@ -1,4 +1,4 @@
-Spackage com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence;
+package com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence;
 
 import java.util.List;
 import java.util.Optional;
