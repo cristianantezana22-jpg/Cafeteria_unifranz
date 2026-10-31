@@ -17,14 +17,17 @@ import com.cafeteria.cafeteria_unifranz.application.dto.AuthenticatedUser;
 import com.cafeteria.cafeteria_unifranz.application.dto.CajeroPerfilResponse;
 import com.cafeteria.cafeteria_unifranz.application.dto.PedidoCajaResponse;
 import com.cafeteria.cafeteria_unifranz.application.service.CajeroService;
+import com.cafeteria.cafeteria_unifranz.application.service.NotificadorTiempoReal;
 
 @Service
 public class CajeroServiceImpl implements CajeroService {
 
     private final PedidoCajaRepository pedidoRepository;
+    private final NotificadorTiempoReal notificador;
 
-    public CajeroServiceImpl(PedidoCajaRepository pedidoRepository) {
-        this.pedidoRepository = pedidoRepository;
+    public CajeroServiceImpl(PedidoCajaRepository pedidoRepository, NotificadorTiempoReal notificador) {
+    this.pedidoRepository = pedidoRepository;
+    this.notificador = notificador;
     }
 
     @Override
@@ -56,6 +59,7 @@ public class CajeroServiceImpl implements CajeroService {
         }
 
         pedidoRepository.cambiarEstado(pedido.id(), pedido.estado(), nuevoEstado, cajero.id(), cajero.email());
+        notificador.pedidosActualizados(pedidoId);
 
         PedidoCaja actualizado = pedidoRepository.buscarPorId(pedidoId)
                 .orElseThrow(PedidoNoEncontradoException::new);

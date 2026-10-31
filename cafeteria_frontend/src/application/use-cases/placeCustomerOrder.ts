@@ -11,7 +11,6 @@ export function createPlaceCustomerOrder(
 ) {
   return async (request: PlaceOrderRequest | OrderRequestItem[]) => {
     const session = sessions.get()
-    if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.')
-    return gateway.placeOrder(session.token, request)
+    return gateway.placeOrder(session?.token, request)
   }
 }

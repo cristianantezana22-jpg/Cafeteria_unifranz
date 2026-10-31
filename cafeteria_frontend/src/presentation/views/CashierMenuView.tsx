@@ -5,14 +5,15 @@ import type {
   MenuProductRequest,
 } from '../../domain/models'
 import {
-  createMenuProduct,
-  deleteMenuProduct,
   getCurrentSession,
   getMenuCategories,
   getMenuProducts,
+  setProductAvailability,
   updateMenuProduct,
 } from '../../infrastructure/api/cafeteria'
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 import './cashier-menu-view.css'
+import './cashier-menu-availability.css'
 
 type Section = 'menu' | 'categories'
 type MenuForm = {
@@ -37,6 +38,15 @@ function formatPrice(price: number) {
   return `Bs ${price.toFixed(2)}`
 }
 
+function isSessionExpired(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    error.status === 401
+  )
+}
+
 export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewProps) {
   const session = getCurrentSession()
   const [section, setSection] = useState<Section>('menu')
@@ -49,12 +59,12 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
   const [editingProduct, setEditingProduct] = useState<MenuProduct | null>(null)
   const [form, setForm] = useState<MenuForm>(emptyForm)
   const [isSaving, setIsSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  async function loadMenu() {
-    setIsLoading(true)
+  async function loadMenu(silent = false) {
+    if (!silent) setIsLoading(true)
     setError('')
     try {
       const [menuProducts, menuCategories] = await Promise.all([
@@ -64,15 +74,24 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
       setProducts(menuProducts)
       setCategories(menuCategories)
     } catch (loadError) {
+      if (isSessionExpired(loadError)) {
+        onLogout()
+        return
+      }
       setError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el menú.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
   useEffect(() => {
     void loadMenu()
   }, [])
+
+  useRealtimeEvents({
+    'products-changed': () => void loadMenu(true),
+    reconnected: () => void loadMenu(true),
+  })
 
   const filteredProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase()
@@ -86,13 +105,6 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
       return matchesSearch && matchesCategory
     })
   }, [categoryFilter, products, search])
-
-  function openCreateForm() {
-    setEditingProduct(null)
-    setForm({ ...emptyForm, categoryId: categories[0] ? String(categories[0].id) : '' })
-    setError('')
-    setIsFormOpen(true)
-  }
 
   function openEditForm(product: MenuProduct) {
     setEditingProduct(product)
@@ -108,6 +120,7 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!editingProduct) return
     setIsSaving(true)
     setError('')
     const request: MenuProductRequest = {
@@ -116,42 +129,40 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
       price: Number(form.price),
       featured: form.featured,
     }
-
     try {
-      if (editingProduct) {
-        const updated = await updateMenuProduct(editingProduct.id, request)
-        setProducts((current) =>
-          current.map((product) => (product.id === updated.id ? updated : product)),
-        )
-        setNotice('El producto se actualizó correctamente.')
-      } else {
-        const created = await createMenuProduct(request)
-        setProducts((current) => [created, ...current])
-        setNotice('El producto se agregó al menú.')
-      }
+      const updated = await updateMenuProduct(editingProduct.id, request)
+      setProducts((current) => current.map((p) => (p.id === updated.id ? updated : p)))
+      setNotice('El producto se actualizó correctamente.')
       setIsFormOpen(false)
     } catch (saveError) {
+      if (isSessionExpired(saveError)) {
+        onLogout()
+        return
+      }
       setError(saveError instanceof Error ? saveError.message : 'No se pudo guardar el producto.')
     } finally {
       setIsSaving(false)
     }
   }
 
-  async function handleDelete(product: MenuProduct) {
-    if (!window.confirm(`¿Eliminar "${product.name}" del menú?`)) return
-    setDeletingId(product.id)
+  async function handleToggleAvailability(product: MenuProduct) {
+    setTogglingId(product.id)
     setError('')
     setNotice('')
     try {
-      await deleteMenuProduct(product.id)
-      setProducts((current) => current.filter((item) => item.id !== product.id))
-      setNotice('El producto se eliminó del menú.')
-    } catch (deleteError) {
-      setError(
-        deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar el producto.',
+      const result = await setProductAvailability(product.id, !product.available)
+      setProducts((current) =>
+        current.map((p) => (p.id === result.id ? { ...p, available: result.available } : p)),
       )
+      setNotice(result.available ? 'Producto habilitado.' : 'Producto deshabilitado.')
+    } catch (toggleError) {
+      if (isSessionExpired(toggleError)) {
+        onLogout()
+        return
+      }
+      setError(toggleError instanceof Error ? toggleError.message : 'No se pudo cambiar el estado.')
     } finally {
-      setDeletingId(null)
+      setTogglingId(null)
     }
   }
 
@@ -226,21 +237,10 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
               <h1>{section === 'menu' ? 'Gestión del menú' : 'Categorías'}</h1>
               <p className="cashier-menu-page-subtitle">
                 {section === 'menu'
-                  ? 'Administra los productos disponibles en tu cafetería.'
+                  ? 'Administra la disponibilidad de los productos en tu cafetería.'
                   : 'Consulta las categorías disponibles para organizar el menú.'}
               </p>
             </div>
-            {section === 'menu' && (
-              <button
-                className="cashier-menu-primary-button"
-                disabled={categories.length === 0}
-                onClick={openCreateForm}
-                type="button"
-              >
-                <span aria-hidden="true">+</span>
-                Agregar menú
-              </button>
-            )}
           </div>
 
           {error && !isFormOpen && (
@@ -277,7 +277,7 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
               <div className="cashier-menu-panel-heading">
                 <div>
                   <h2>Productos</h2>
-                  <p>Consulta y actualiza los productos de tu menú.</p>
+                  <p>Consulta y gestiona la disponibilidad de los productos.</p>
                 </div>
                 <span className="cashier-menu-results-count">{filteredProducts.length} productos</span>
               </div>
@@ -315,13 +315,8 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
                   <p>
                     {products.length
                       ? 'Prueba con otra búsqueda o categoría.'
-                      : 'Agrega el primer producto para comenzar.'}
+                      : 'No hay productos disponibles actualmente.'}
                   </p>
-                  {!products.length && (
-                    <button className="cashier-menu-text-button" onClick={openCreateForm} type="button">
-                      Agregar menú
-                    </button>
-                  )}
                 </div>
               ) : (
                 <div className="cashier-menu-table-wrap">
@@ -349,31 +344,51 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
                           <td><span className="cashier-menu-category-tag">{product.category}</span></td>
                           <td className="cashier-menu-price">{formatPrice(product.price)}</td>
                           <td>
-                            <span className={product.featured ? 'cashier-menu-badge is-featured' : 'cashier-menu-badge'}>
+                            <span
+                              className={
+                                product.available === false
+                                  ? 'cashier-menu-badge is-unavailable'
+                                  : product.featured
+                                    ? 'cashier-menu-badge is-featured'
+                                    : 'cashier-menu-badge'
+                              }
+                            >
                               <span />
-                              {product.featured ? 'Destacado' : 'Disponible'}
+                              {product.available === false
+                                ? 'Inactivo'
+                                : product.featured
+                                  ? 'Destacado'
+                                  : 'Disponible'}
                             </span>
                           </td>
                           <td>
                             <div className="cashier-menu-row-actions">
                               <button
                                 aria-label={`Editar ${product.name}`}
-                                className="cashier-menu-icon-button"
+                                className="cashier-menu-action-button"
                                 onClick={() => openEditForm(product)}
                                 title="Editar"
                                 type="button"
                               >
-                                ✎
+                                Editar
                               </button>
                               <button
-                                aria-label={`Eliminar ${product.name}`}
-                                className="cashier-menu-icon-button is-delete"
-                                disabled={deletingId === product.id}
-                                onClick={() => void handleDelete(product)}
-                                title="Eliminar"
+                                aria-label={
+                                  product.available === false
+                                    ? `Habilitar ${product.name}`
+                                    : `Deshabilitar ${product.name}`
+                                }
+                                className="cashier-menu-action-button"
+                                disabled={togglingId === product.id}
+                                onClick={() => void handleToggleAvailability(product)}
+                                title={product.available === false ? 'Habilitar' : 'Deshabilitar'}
                                 type="button"
                               >
-                                {deletingId === product.id ? '…' : '⌫'}
+                                {togglingId === product.id
+                                  ? 'Actualizando…'
+                                  : product.available === false
+                                    ? 'Habilitar'
+                                    : 'Deshabilitar'}
                               </button>
                             </div>
                           </td>
@@ -416,7 +431,7 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
         </div>
       </section>
 
-      {isFormOpen && (
+      {isFormOpen && editingProduct && (
         <div
           className="cashier-menu-modal-backdrop"
           onMouseDown={(event) => {
@@ -431,8 +446,8 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
           >
             <div className="cashier-menu-modal-heading">
               <div>
-                <p className="cashier-menu-eyebrow">{editingProduct ? 'ACTUALIZAR MENÚ' : 'NUEVO PRODUCTO'}</p>
-                <h2 id="cashier-menu-form-title">{editingProduct ? 'Editar producto' : 'Agregar menú'}</h2>
+                <p className="cashier-menu-eyebrow">ACTUALIZAR MENÚ</p>
+                <h2 id="cashier-menu-form-title">Editar producto</h2>
               </div>
               <button
                 aria-label="Cerrar formulario"
@@ -504,7 +519,7 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
                   Cancelar
                 </button>
                 <button className="cashier-menu-primary-button" disabled={isSaving} type="submit">
-                  {isSaving ? 'Guardando...' : editingProduct ? 'Guardar cambios' : 'Agregar producto'}
+                  {isSaving ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
             </form>

@@ -1,1 +1,1 @@
-export type PaymentMethod = 'EFECTIVO' | 'QR' | 'TARJETA'
+export type PaymentMethod = 'EFECTIVO' | 'QR' | 'TARJETA' | 'YA_PAGO'

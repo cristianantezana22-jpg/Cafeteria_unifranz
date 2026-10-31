@@ -201,7 +201,7 @@ a {
 
 .customer-page {
   min-height: 100vh;
-  background: var(--paper);
+  background: #f8f5f8;
 }
 
 .welcome-band {

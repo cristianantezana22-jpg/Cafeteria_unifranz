@@ -1,4 +1,5 @@
 import { Button } from '../Button/Button'
+import { SoldOutBadge } from '../SoldOutBadge/SoldOutBadge'
 import type { ProductCardProps } from './ProductCard.logic'
 import { getProductCardDetails } from './ProductCard.logic'
 import './product-card.css'
@@ -11,9 +12,10 @@ export function ProductCard({
   const details = getProductCardDetails(product, index)
 
   return (
-    <article className="product-item">
+    <article className={`product-item${product.available ? '' : ' is-soldout'}`}>
       <div className="product-image-wrap">
         <img src={details.imageUrl} alt={details.name} loading="lazy" />
+        {!product.available && <SoldOutBadge />}
         <span className="product-index">{details.indexLabel}</span>
         <span className="product-category">{details.category}</span>
       </div>
@@ -24,8 +26,18 @@ export function ProductCard({
         </div>
         <strong className="product-price">{details.formattedPrice}</strong>
       </div>
-      <Button variant="outlined" onClick={() => onAddToCart(product)}>
-        Agregar al carrito <span aria-hidden="true">+</span>
+      <Button
+        disabled={!product.available}
+        onClick={() => product.available && onAddToCart(product)}
+        variant="outlined"
+      >
+        {product.available ? (
+          <>
+            Agregar al carrito <span aria-hidden="true">+</span>
+          </>
+        ) : (
+          'Producto agotado'
+        )}
       </Button>
     </article>
   )

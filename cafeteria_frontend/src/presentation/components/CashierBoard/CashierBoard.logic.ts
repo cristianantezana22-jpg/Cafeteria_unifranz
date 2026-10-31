@@ -12,6 +12,7 @@ import {
   logoutCashier,
   updateCashierOrderStatus,
 } from '../../../infrastructure/api/cafeteria'
+import { useRealtimeEvents } from '../../hooks/useRealtimeEvents'
 import { STATUS_LABELS } from '../CashierOrderCard/CashierOrderCard.logic'
 
 export type BoardFilter = 'TODOS' | 'PENDIENTE' | 'EN_PREPARACION' | 'LISTO' | 'ENTREGADO'
@@ -24,7 +25,16 @@ export const FILTERS: { value: BoardFilter; label: string }[] = [
   { value: 'ENTREGADO', label: STATUS_LABELS.ENTREGADO },
 ]
 
-const REFRESH_INTERVAL_MS = 10_000
+const REFRESH_INTERVAL_MS = 30_000
+
+function isSessionExpired(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    error.status === 401
+  )
+}
 
 export function useCashierBoard() {
   const navigate = useNavigate()
@@ -50,6 +60,11 @@ export function useCashierBoard() {
       setError('')
     } catch (loadError) {
       if (!isMounted.current) return
+      if (isSessionExpired(loadError)) {
+        logoutCashier()
+        void navigate({ to: '/' })
+        return
+      }
       setError(
         loadError instanceof Error
           ? loadError.message
@@ -58,7 +73,7 @@ export function useCashierBoard() {
     } finally {
       if (isMounted.current) setIsLoading(false)
     }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     isMounted.current = true
@@ -69,6 +84,11 @@ export function useCashierBoard() {
       })
       .catch((profileError) => {
         if (!isMounted.current) return
+        if (isSessionExpired(profileError)) {
+          logoutCashier()
+          void navigate({ to: '/' })
+          return
+        }
         setError(
           profileError instanceof Error
             ? profileError.message
@@ -85,6 +105,11 @@ export function useCashierBoard() {
     }
   }, [loadOrders])
 
+  useRealtimeEvents({
+    'orders-changed': () => void loadOrders(),
+    reconnected: () => void loadOrders(),
+  })
+
   const changeStatus = useCallback(
     async (order: CashierOrder, status: OrderStatus) => {
       setUpdatingId(order.id)
@@ -95,6 +120,11 @@ export function useCashierBoard() {
           current.map((item) => (item.id === updated.id ? updated : item)),
         )
       } catch (updateError) {
+        if (isSessionExpired(updateError)) {
+          logoutCashier()
+          void navigate({ to: '/' })
+          return
+        }
         setError(
           updateError instanceof Error
             ? updateError.message

@@ -7,7 +7,6 @@ export function createGetFeaturedProducts(
 ) {
   return async () => {
     const session = sessions.get()
-    if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.')
-    return gateway.getFeaturedProducts(session.token)
+    return gateway.getFeaturedProducts(session?.token)
   }
 }
