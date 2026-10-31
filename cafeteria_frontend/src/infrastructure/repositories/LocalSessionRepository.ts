@@ -23,7 +23,6 @@ function isCustomerSession(value: unknown): value is CustomerSession {
   )
 }
 
-// En el servidor (SSR) no existe window ni localStorage.
 function getStorage(): Storage | null {
   if (typeof window === 'undefined') return null
   return window.localStorage
