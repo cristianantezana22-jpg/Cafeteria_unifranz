@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginRequest;
 import com.cafeteria.cafeteria_unifranz.application.dto.LoginResponse;
+import com.cafeteria.cafeteria_unifranz.application.dto.GoogleLoginRequest;
 import com.cafeteria.cafeteria_unifranz.application.dto.CustomerRegistrationRequest;
 import com.cafeteria.cafeteria_unifranz.application.service.AuthService;
 
@@ -25,6 +26,11 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/google")
+    public LoginResponse loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return authService.loginWithGoogle(request);
     }
 
     @PostMapping("/register")

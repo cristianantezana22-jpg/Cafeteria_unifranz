@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login", "/api/auth/register", "/api/auth/google").permitAll()
                         // PERMITE EL ACCESO A TODAS LAS RUTAS DE ADMINISTRADOR (USUARIOS, PRODUCTOS, EMPLEADOS)
                         .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
