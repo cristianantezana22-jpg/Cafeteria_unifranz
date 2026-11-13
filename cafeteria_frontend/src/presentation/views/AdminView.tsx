@@ -39,6 +39,42 @@ const authHeaders = (): Record<string, string> => {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+// Nombre del usuario de la sesión (para que el saludo coincida con la cabecera)
+const leerNombreSesion = (): string | null => {
+  for (const store of [localStorage, sessionStorage]) {
+    for (let i = 0; i < store.length; i++) {
+      const raw = store.getItem(store.key(i) ?? '')
+      if (!raw || raw[0] !== '{') continue
+      try {
+        const obj = JSON.parse(raw) as Record<string, unknown>
+        const dentro = (obj.user ?? obj.usuario ?? obj) as Record<string, unknown>
+        const n = dentro.nombreCompleto ?? dentro.fullName ?? dentro.name ?? dentro.nombre
+        if (typeof n === 'string' && n) return n
+      } catch {
+        /* no era JSON */
+      }
+    }
+  }
+  return null
+}
+
+// Llamada con token. Si el servidor responde con error, lanza el mensaje que él devuelve.
+const llamar = async (ruta: string, metodo: 'POST' | 'DELETE' = 'POST', cuerpo?: unknown) => {
+  const res = await fetch(`${API}${ruta}`, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+  })
+  if (!res.ok) {
+    const data = (await res.json().catch(() => null)) as { message?: string } | null
+    throw new Error(data?.message ?? `HTTP ${res.status}`)
+  }
+  return res.status === 204 ? null : await res.json().catch(() => null)
+}
+
+const mensajeError = (err: unknown, porDefecto: string) =>
+  err instanceof Error && !err.message.startsWith('HTTP') ? err.message : porDefecto
+
 /* ───────────────────────────── TIPOS ───────────────────────────── */
 interface Usuario {
   id: number
@@ -46,16 +82,7 @@ interface Usuario {
   nombre?: string
   email: string
   rol: string
-}
-
-interface Producto {
-  id?: number
-  nombre: string
-  descripcion: string
-  precio: number
-  categoria: string
-  bloque: string
-  disponible: boolean
+  eliminado?: boolean
 }
 
 interface Empleado {
@@ -64,17 +91,8 @@ interface Empleado {
   cargo: string
   bloque: string
   activo: boolean
-}
-
-type EstadoPedido = 'PENDIENTE' | 'PREPARANDO' | 'LISTO'
-
-interface Pedido {
-  id: number
-  cliente: string
-  platillo: string
-  bloque: string
-  estado: EstadoPedido
-  total: number
+  email?: string | null
+  password?: string | null
 }
 
 interface Venta {
@@ -86,36 +104,29 @@ interface Venta {
   total: number
 }
 
-type Pestana = 'inicio' | 'usuarios' | 'pedidos' | 'menu' | 'empleados' | 'reportes'
+type Pestana = 'inicio' | 'usuarios' | 'empleados' | 'reportes'
+type FiltroUsuarios = 'TODOS' | 'ACTIVOS' | 'ELIMINADOS'
 
 /* ───────────────────────────── ÍCONOS (SVG inline) ───────────────────────────── */
 const ICONS = {
   home: '<path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/>',
-  orders:
-    '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
-  menu: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   users:
     '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
   trash:
     '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+  restore: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
   chart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
   pdf: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>',
   sheet: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
-  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
-  flame:
-    '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
   wallet:
     '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
   refresh:
     '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
   alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
-  trend: '<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
-  receipt:
-    '<path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 1 .67V2l-1 .67-3-2-3 2-3-2-3 2z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
   inbox:
     '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
   chevron: '<path d="m9 18 6-6-6-6"/>',
@@ -141,7 +152,6 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   )
 }
 
-/* ───────────────────────────── UTILIDADES ───────────────────────────── */
 const bs = (n: number) => `Bs. ${n.toFixed(2)}`
 const etiquetaBloque = (b: string) => (b === 'AMBOS' ? 'Ambos bloques' : b.replace('BLOQUE_', 'Bloque '))
 const iniciales = (nombre: string) =>
@@ -151,18 +161,11 @@ const iniciales = (nombre: string) =>
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join('')
-
-const COLUMNAS: { estado: EstadoPedido; titulo: string; color: string; icono: IconName }[] = [
-  { estado: 'PENDIENTE', titulo: 'Pendientes', color: '#e11d48', icono: 'clock' },
-  { estado: 'PREPARANDO', titulo: 'En preparación', color: '#d97706', icono: 'flame' },
-  { estado: 'LISTO', titulo: 'Listos para retirar', color: '#16a34a', icono: 'check' },
-]
+const nombreDe = (u: Usuario) => u.nombreCompleto || u.nombre || 'Sin nombre'
 
 const TITULOS: Record<Pestana, { titulo: string; sub: string }> = {
   inicio: { titulo: 'Inicio', sub: 'Resumen general de la cafetería' },
-  usuarios: { titulo: 'Gestión de usuarios', sub: 'Administra cuentas, roles y accesos del sistema' },
-  pedidos: { titulo: 'Monitor de pedidos', sub: 'Arrastra las tarjetas entre columnas para cambiar su estado' },
-  menu: { titulo: 'Menú y platillos', sub: 'Publica platillos y controla su disponibilidad' },
+  usuarios: { titulo: 'Gestión de usuarios', sub: 'Rehabilita cuentas eliminadas o elimínalas de forma permanente' },
   empleados: { titulo: 'Personal y turnos', sub: 'Registra al equipo y gestiona quién está en turno' },
   reportes: { titulo: 'Reportes y ventas', sub: 'Analiza ingresos y exporta tus balances' },
 }
@@ -170,15 +173,12 @@ const TITULOS: Record<Pestana, { titulo: string; sub: string }> = {
 const NAV: { id: Pestana; label: string; icon: IconName }[] = [
   { id: 'inicio', label: 'Inicio Admin', icon: 'home' },
   { id: 'usuarios', label: 'Gestionar Usuarios', icon: 'shield' },
-  { id: 'pedidos', label: 'Monitor de pedidos', icon: 'orders' },
-  { id: 'menu', label: 'Menú y platillos', icon: 'menu' },
   { id: 'empleados', label: 'Personal', icon: 'users' },
   { id: 'reportes', label: 'Reportes', icon: 'chart' },
 ]
 
-/* ───────────────────────────── COMPONENTE PRINCIPAL ───────────────────────────── */
 export function AdminView() {
-  const usuario = 'Victor Apaza'
+  const usuario = leerNombreSesion() ?? 'Administrador'
   const [pestana, setPestana] = useState<Pestana>('inicio')
   const [cargando, setCargando] = useState(false)
   const [errorApi, setErrorApi] = useState(false)
@@ -186,45 +186,25 @@ export function AdminView() {
   const [detalleError, setDetalleError] = useState('')
   const [toast, setToast] = useState<{ msg: string; tipo: 'ok' | 'error' } | null>(null)
 
-  // Usuarios (Backend Spring Boot)
+  // Usuarios (cuentas de acceso)
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [busquedaUsuarios, setBusquedaUsuarios] = useState('')
-
-  // Productos
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [nombreProd, setNombreProd] = useState('')
-  const [descProd, setDescProd] = useState('')
-  const [precioProd, setPrecioProd] = useState('')
-  const [catProd, setCatProd] = useState('Almuerzo')
-  const [bloqueProd, setBloqueProd] = useState('BLOQUE_A')
-  const [busquedaMenu, setBusquedaMenu] = useState('')
-  const [catFiltro, setCatFiltro] = useState('TODAS')
+  const [filtroUsuarios, setFiltroUsuarios] = useState<FiltroUsuarios>('TODOS')
 
   // Empleados
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [nombreEmp, setNombreEmp] = useState('')
   const [cargoEmp, setCargoEmp] = useState('Cajero')
   const [bloqueEmp, setBloqueEmp] = useState('BLOQUE_A')
+  const [credenciales, setCredenciales] = useState<{ nombre: string; email: string; password: string } | null>(null)
 
-  // Pedidos (Kanban)
-  const [pedidos, setPedidos] = useState<Pedido[]>([
-    { id: 101, cliente: 'Carlos Mamani', platillo: 'Silpancho', bloque: 'BLOQUE_A', estado: 'PENDIENTE', total: 12.0 },
-    { id: 102, cliente: 'Ana Flores', platillo: 'Sopa de Maní + Bebida', bloque: 'BLOQUE_B', estado: 'PREPARANDO', total: 15.0 },
-    { id: 103, cliente: 'David Quispe', platillo: 'Empanada de Queso', bloque: 'BLOQUE_A', estado: 'LISTO', total: 5.0 },
-  ])
-  const [arrastrando, setArrastrando] = useState<number | null>(null)
-  const [columnaSobre, setColumnaSobre] = useState<EstadoPedido | null>(null)
-
-  // Ventas de prueba
+  // Ventas de ejemplo (se reemplazarán por las ventas reales de los cajeros)
   const [ventas] = useState<Venta[]>([
     { id: 1, fecha: '2026-10-03 08:30', cliente: 'Carlos Mamani', metodoPago: 'QR', bloque: 'BLOQUE_A', total: 12.0 },
     { id: 2, fecha: '2026-10-03 09:15', cliente: 'Ana Flores', metodoPago: 'EFECTIVO', bloque: 'BLOQUE_B', total: 15.0 },
     { id: 3, fecha: '2026-10-03 10:00', cliente: 'David Quispe', metodoPago: 'QR', bloque: 'BLOQUE_A', total: 5.0 },
     { id: 4, fecha: '2026-10-03 11:20', cliente: 'Lucía Vargas', metodoPago: 'QR', bloque: 'BLOQUE_B', total: 22.5 },
   ])
-  const [busquedaVentas, setBusquedaVentas] = useState('')
-  const [filtroBloque, setFiltroBloque] = useState('TODOS')
-  const [filtroMetodo, setFiltroMetodo] = useState('TODOS')
 
   /* ── Toast Notificaciones ── */
   const notify = useCallback((msg: string, tipo: 'ok' | 'error' = 'ok') => setToast({ msg, tipo }), [])
@@ -244,22 +224,18 @@ export function AdminView() {
         return r.json() as Promise<T>
       })
 
-    const [u, p, e] = await Promise.allSettled([
-      pedir<Usuario[]>('/usuarios'),
-      pedir<Producto[]>('/productos'),
-      pedir<Empleado[]>('/empleados'),
-    ])
+    const [u, e] = await Promise.allSettled([pedir<Usuario[]>('/usuarios'), pedir<Empleado[]>('/empleados')])
 
     if (u.status === 'fulfilled' && Array.isArray(u.value)) setUsuarios(u.value)
-    if (p.status === 'fulfilled') setProductos(p.value)
-    if (e.status === 'fulfilled') setEmpleados(e.value)
+    if (e.status === 'fulfilled' && Array.isArray(e.value)) setEmpleados(e.value)
 
-    const fallos = [u, p, e].filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+    const resultados = [u, e]
+    const fallos = resultados.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
     setErrorApi(fallos.length > 0)
     setErrorAuth(fallos.some((r) => /HTTP 40[13]/.test(String(r.reason))))
 
-    const nombresRutas = ['usuarios', 'productos', 'empleados']
-    const detalle = [u, p, e].flatMap((r, i) =>
+    const nombresRutas = ['usuarios', 'empleados']
+    const detalle = resultados.flatMap((r, i) =>
       r.status === 'rejected' ? [`${nombresRutas[i]} (${String(r.reason).replace('Error: ', '')})`] : [],
     )
     const sinToken = leerToken() ? '' : ' · No se encontró ningún token en localStorage ni en sessionStorage.'
@@ -271,58 +247,26 @@ export function AdminView() {
     void cargarDatos()
   }, [cargarDatos])
 
-  const enviar = async (ruta: string, cuerpo: unknown, metodo = 'POST') => {
-    const res = await fetch(`${API}${ruta}`, {
-      method: metodo,
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(cuerpo),
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  }
-
-  /* ── Eliminar usuario ── */
-  const handleDeleteUsuario = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
-      try {
-        const res = await fetch(`${API}/usuarios/${id}`, { method: 'DELETE', headers: authHeaders() })
-        if (!res.ok) throw new Error()
-        setUsuarios((prev) => prev.filter((u) => u.id !== id))
-        notify('Usuario eliminado correctamente')
-      } catch {
-        notify('No se pudo eliminar el usuario', 'error')
-      }
+  /* ── Acciones: usuarios (cuentas) ── */
+  const eliminarUsuarioDefinitivo = async (user: Usuario) => {
+    if (!window.confirm(`¿Eliminar PERMANENTEMENTE a ${nombreDe(user)}? Esta acción no se puede deshacer.`)) return
+    try {
+      await llamar(`/usuarios/${user.id}`, 'DELETE')
+      setUsuarios((prev) => prev.filter((u) => u.id !== user.id))
+      notify('Usuario eliminado permanentemente')
+      void cargarDatos()
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo eliminar el usuario'), 'error')
     }
   }
 
-  /* ── Acciones: productos ── */
-  const handleGuardarProducto = async (e: FormEvent) => {
-    e.preventDefault()
+  const rehabilitarUsuario = async (user: Usuario) => {
     try {
-      await enviar('/productos', {
-        nombre: nombreProd,
-        descripcion: descProd,
-        precio: parseFloat(precioProd),
-        categoria: catProd,
-        bloque: bloqueProd,
-        disponible: true,
-      })
-      setNombreProd('')
-      setDescProd('')
-      setPrecioProd('')
-      notify('Platillo publicado correctamente')
+      await llamar(`/usuarios/${user.id}/rehabilitar`)
+      notify(`${nombreDe(user)} fue rehabilitado`)
       void cargarDatos()
-    } catch {
-      notify('No se pudo guardar el platillo', 'error')
-    }
-  }
-
-  const toggleDisponible = async (prod: Producto) => {
-    try {
-      await enviar('/productos', { ...prod, disponible: !prod.disponible })
-      notify(prod.disponible ? `${prod.nombre} marcado como agotado` : `${prod.nombre} disponible`)
-      void cargarDatos()
-    } catch {
-      notify('No se pudo actualizar el platillo', 'error')
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo rehabilitar al usuario'), 'error')
     }
   }
 
@@ -330,59 +274,88 @@ export function AdminView() {
   const handleGuardarEmpleado = async (e: FormEvent) => {
     e.preventDefault()
     try {
-      await enviar('/empleados', { nombre: nombreEmp, cargo: cargoEmp, bloque: bloqueEmp, activo: true })
+      const resp = (await llamar('/empleados', 'POST', {
+        nombre: nombreEmp,
+        cargo: cargoEmp,
+        bloque: bloqueEmp,
+        activo: true,
+      })) as Empleado | null
       setNombreEmp('')
+      if (resp?.email && resp.password) {
+        setCredenciales({ nombre: resp.nombre, email: resp.email, password: resp.password })
+      }
       notify('Empleado registrado')
       void cargarDatos()
-    } catch {
-      notify('No se pudo registrar al empleado', 'error')
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo registrar al empleado'), 'error')
     }
   }
 
   const toggleEmpleadoTurno = async (emp: Empleado) => {
     try {
-      await enviar('/empleados', { ...emp, activo: !emp.activo })
+      await llamar('/empleados', 'POST', { ...emp, activo: !emp.activo })
       notify(emp.activo ? `Turno finalizado: ${emp.nombre}` : `Turno iniciado: ${emp.nombre}`)
       void cargarDatos()
-    } catch {
-      notify('No se pudo actualizar el turno', 'error')
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo actualizar el turno'), 'error')
     }
+  }
+
+  // Crea la cuenta del empleado (si no tiene) o genera una contraseña nueva
+  const generarAcceso = async (emp: Empleado) => {
+    if (emp.id === undefined) return
+    if (emp.email && !window.confirm(`¿Restablecer la contraseña de ${emp.nombre}? La anterior dejará de funcionar.`)) return
+    try {
+      const resp = (await llamar(`/empleados/${emp.id}/credenciales`)) as { email: string; password: string } | null
+      if (resp) setCredenciales({ nombre: emp.nombre, email: resp.email, password: resp.password })
+      void cargarDatos()
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo generar el acceso'), 'error')
+    }
+  }
+
+  // Eliminación lógica: sale de Personal y su cuenta queda deshabilitada
+  const eliminarEmpleado = async (emp: Empleado) => {
+    if (emp.id === undefined) return
+    const aviso = emp.email
+      ? `¿Eliminar a ${emp.nombre} del personal? Su cuenta (${emp.email}) quedará deshabilitada. Podrás rehabilitarla o eliminarla definitivamente en Gestionar Usuarios.`
+      : `¿Eliminar a ${emp.nombre} del personal? No tiene cuenta de acceso, así que no aparecerá en Gestionar Usuarios para rehabilitarlo.`
+    if (!window.confirm(aviso)) return
+    try {
+      await llamar(`/empleados/${emp.id}`, 'DELETE')
+      notify(`${emp.nombre} fue eliminado del personal`)
+      void cargarDatos()
+    } catch (err) {
+      notify(mensajeError(err, 'No se pudo eliminar al empleado'), 'error')
+    }
+  }
+
+  const copiarCredenciales = () => {
+    if (!credenciales) return
+    const texto = `Correo: ${credenciales.email}\nContraseña: ${credenciales.password}`
+    void navigator.clipboard
+      .writeText(texto)
+      .then(() => notify('Datos copiados'))
+      .catch(() => notify('No se pudo copiar', 'error'))
   }
 
   /* ── Datos derivados ── */
   const totalRecaudado = useMemo(() => ventas.reduce((a, v) => a + v.total, 0), [ventas])
-  const ticketPromedio = ventas.length ? totalRecaudado / ventas.length : 0
-  const pedidosActivos = pedidos.filter((p) => p.estado !== 'LISTO').length
-  const pendientes = pedidos.filter((p) => p.estado === 'PENDIENTE').length
   const enTurno = empleados.filter((e) => e.activo).length
+  const conAcceso = empleados.filter((e) => e.email).length
 
-  const usuariosFiltrados = useMemo(
-    () => usuarios.filter((u) => (u.nombreCompleto || u.nombre || '').toLowerCase().includes(busquedaUsuarios.toLowerCase()) || u.email.toLowerCase().includes(busquedaUsuarios.toLowerCase())),
-    [usuarios, busquedaUsuarios]
-  )
+  const usuariosActivos = useMemo(() => usuarios.filter((u) => !u.eliminado), [usuarios])
+  const usuariosEliminados = usuarios.length - usuariosActivos.length
 
-  const productosFiltrados = useMemo(
-    () =>
-      productos.filter(
-        (p) =>
-          (catFiltro === 'TODAS' || p.categoria === catFiltro) &&
-          p.nombre.toLowerCase().includes(busquedaMenu.toLowerCase()),
-      ),
-    [productos, catFiltro, busquedaMenu],
-  )
+  const usuariosFiltrados = useMemo(() => {
+    const q = busquedaUsuarios.toLowerCase()
+    return usuarios.filter((u) => {
+      const coincideEstado =
+        filtroUsuarios === 'TODOS' || (filtroUsuarios === 'ACTIVOS' ? !u.eliminado : Boolean(u.eliminado))
+      return coincideEstado && (nombreDe(u).toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    })
+  }, [usuarios, filtroUsuarios, busquedaUsuarios])
 
-  const ventasFiltradas = useMemo(
-    () =>
-      ventas.filter(
-        (v) =>
-          (filtroBloque === 'TODOS' || v.bloque === filtroBloque) &&
-          (filtroMetodo === 'TODOS' || v.metodoPago === filtroMetodo) &&
-          v.cliente.toLowerCase().includes(busquedaVentas.toLowerCase()),
-      ),
-    [ventas, filtroBloque, filtroMetodo, busquedaVentas],
-  )
-
-  const totalFiltrado = ventasFiltradas.reduce((a, v) => a + v.total, 0)
   const porBloque = useMemo(() => {
     const mapa: Record<string, number> = {}
     ventas.forEach((v) => (mapa[v.bloque] = (mapa[v.bloque] ?? 0) + v.total))
@@ -405,8 +378,8 @@ export function AdminView() {
     autoTable(doc, {
       startY: 36,
       head: [['ID', 'Fecha / Hora', 'Cliente', 'Método', 'Bloque', 'Monto (Bs)']],
-      body: ventasFiltradas.map((v) => [v.id, v.fecha, v.cliente, v.metodoPago, etiquetaBloque(v.bloque), v.total.toFixed(2)]),
-      foot: [['', '', '', '', 'TOTAL', totalFiltrado.toFixed(2)]],
+      body: ventas.map((v) => [v.id, v.fecha, v.cliente, v.metodoPago, etiquetaBloque(v.bloque), v.total.toFixed(2)]),
+      foot: [['', '', '', '', 'TOTAL', totalRecaudado.toFixed(2)]],
       headStyles: { fillColor: [168, 0, 151] },
       theme: 'striped',
     })
@@ -415,7 +388,7 @@ export function AdminView() {
   }
 
   const exportarExcel = () => {
-    const datos = ventasFiltradas.map((v) => ({
+    const datos = ventas.map((v) => ({
       ID: v.id,
       'Fecha y Hora': v.fecha,
       Cliente: v.cliente,
@@ -439,7 +412,9 @@ export function AdminView() {
       <style>{CSS}</style>
 
       {/* ── CABECERA ORIGINAL UNIFRANZ CON BOTÓN CERRAR SESIÓN ── */}
-      <RoleHome eyebrow="ADMINISTRACIÓN" title="Panel de administrador" />
+      <div className="hero-wrap">
+        <RoleHome eyebrow="ADMINISTRACIÓN" title="Panel de administrador" />
+      </div>
 
       {/* ── CUERPO: MENÚ LATERAL IZQUIERDO + CONTENIDO ── */}
       <div className="wrap shell">
@@ -454,8 +429,9 @@ export function AdminView() {
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
-                {item.id === 'usuarios' && usuarios.length > 0 && <span className="nav-badge soft">{usuarios.length}</span>}
-                {item.id === 'pedidos' && pedidosActivos > 0 && <span className="nav-badge">{pedidosActivos}</span>}
+                {item.id === 'usuarios' && usuariosActivos.length > 0 && (
+                  <span className="nav-badge soft">{usuariosActivos.length}</span>
+                )}
               </button>
             ))}
           </nav>
@@ -508,10 +484,10 @@ export function AdminView() {
 
           {/* Métricas Superiores */}
           <section className="stats">
-            <StatCard icon="wallet" label="Total recaudado" value={bs(totalRecaudado)} color="#16a34a" hint={`${ventas.length} ventas`} />
-            <StatCard icon="shield" label="Usuarios del sistema" value={String(usuarios.length)} color="#a80097" hint="Registrados en BD" />
-            <StatCard icon="flame" label="Pedidos activos" value={String(pedidosActivos)} color="#d97706" hint={`${pendientes} pendientes`} />
-            <StatCard icon="users" label="Personal en turno" value={String(enTurno)} color="#2563eb" hint={`de ${empleados.length} total`} />
+            <StatCard icon="wallet" label="Total recaudado" value={bs(totalRecaudado)} color="#16a34a" hint={`${ventas.length} ventas · datos de ejemplo`} />
+            <StatCard icon="shield" label="Usuarios del sistema" value={String(usuariosActivos.length)} color="#a80097" hint={`${usuariosEliminados} eliminados`} />
+            <StatCard icon="users" label="Personal registrado" value={String(empleados.length)} color="#2563eb" hint={`${conAcceso} con acceso al sistema`} />
+            <StatCard icon="check" label="Personal en turno" value={String(enTurno)} color="#d97706" hint={`de ${empleados.length} registrados`} />
           </section>
 
           {/* ── 0. INICIO ── */}
@@ -519,7 +495,7 @@ export function AdminView() {
             <div className="fade">
               <section className="card welcome">
                 <h3>¡Bienvenido al sistema, {usuario}!</h3>
-                <p>Desde este panel izquierdo controlas los accesos de usuarios, pedidos en vivo, menú y reportes de la cafetería.</p>
+                <p>Desde este panel controlas los accesos de usuarios, el personal de la cafetería y los reportes de ventas.</p>
                 <div className="tiles">
                   {NAV.filter((n) => n.id !== 'inicio').map((n) => (
                     <button key={n.id} className="tile" onClick={() => setPestana(n.id)}>
@@ -549,6 +525,16 @@ export function AdminView() {
                 </div>
               </div>
 
+              <div className="pills">
+                {(['TODOS', 'ACTIVOS', 'ELIMINADOS'] as FiltroUsuarios[]).map((f) => (
+                  <button key={f} className={`pill ${filtroUsuarios === f ? 'active' : ''}`} onClick={() => setFiltroUsuarios(f)}>
+                    {f === 'TODOS' && `Todos (${usuarios.length})`}
+                    {f === 'ACTIVOS' && `Activos (${usuariosActivos.length})`}
+                    {f === 'ELIMINADOS' && `Eliminados (${usuariosEliminados})`}
+                  </button>
+                ))}
+              </div>
+
               <div className="table-wrap">
                 <table className="table">
                   <thead>
@@ -557,30 +543,38 @@ export function AdminView() {
                       <th>Nombre</th>
                       <th>Correo</th>
                       <th>Rol</th>
+                      <th>Estado</th>
                       <th style={{ textAlign: 'right' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {usuariosFiltrados.map((user) => (
-                      <tr key={user.id}>
+                      <tr key={user.id} className={user.eliminado ? 'eliminado' : ''}>
                         <td className="muted">#{user.id}</td>
                         <td>
                           <div className="inline-user">
-                            <div className="avatar grad">{iniciales(user.nombreCompleto || user.nombre || 'U')}</div>
-                            <span className="cell-main">{user.nombreCompleto || user.nombre || 'Sin nombre'}</span>
+                            <div className="avatar grad">{iniciales(nombreDe(user))}</div>
+                            <span className="cell-main">{nombreDe(user)}</span>
                           </div>
                         </td>
                         <td className="muted">{user.email}</td>
                         <td>
                           <span className={`chip ${user.rol === 'ADMIN' ? 'violet' : 'amber'}`}>{user.rol}</span>
                         </td>
+                        <td>
+                          <span className={`chip ${user.eliminado ? 'red' : 'green'}`}>{user.eliminado ? 'Eliminado' : 'Activo'}</span>
+                        </td>
                         <td style={{ textAlign: 'right' }}>
-                          <button
-                            onClick={() => void handleDeleteUsuario(user.id)}
-                            className="btn softdanger sm"
-                          >
-                            <Icon name="trash" size={14} /> Eliminar
-                          </button>
+                          <div className="row-actions">
+                            {user.eliminado && (
+                              <button className="btn softgreen sm" onClick={() => void rehabilitarUsuario(user)}>
+                                <Icon name="restore" size={14} /> Rehabilitar
+                              </button>
+                            )}
+                            <button className="btn softdanger sm" onClick={() => void eliminarUsuarioDefinitivo(user)}>
+                              <Icon name="trash" size={14} /> Eliminar definitivamente
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -589,164 +583,14 @@ export function AdminView() {
                 {usuariosFiltrados.length === 0 && (
                   <div className="empty">
                     <Icon name="inbox" size={28} />
-                    <span>{cargando ? 'Cargando usuarios...' : 'No hay usuarios registrados en la base de datos'}</span>
+                    <span>{cargando ? 'Cargando usuarios...' : 'No hay usuarios para mostrar'}</span>
                   </div>
                 )}
               </div>
             </section>
           )}
 
-          {/* ── 2. PEDIDOS (KANBAN) ── */}
-          {pestana === 'pedidos' && (
-            <section className="kanban fade">
-              {COLUMNAS.map((col) => {
-                const lista = pedidos.filter((p) => p.estado === col.estado)
-                return (
-                  <div
-                    key={col.estado}
-                    className={`col ${columnaSobre === col.estado ? 'over' : ''}`}
-                    style={{ '--c': col.color } as CSSProperties}
-                    onDragOver={(e) => { e.preventDefault(); setColumnaSobre(col.estado) }}
-                    onDragLeave={() => setColumnaSobre(null)}
-                    onDrop={() => {
-                      if (arrastrando !== null) {
-                        setPedidos((prev) => prev.map((p) => (p.id === arrastrando ? { ...p, estado: col.estado } : p)))
-                      }
-                      setArrastrando(null)
-                      setColumnaSobre(null)
-                    }}
-                  >
-                    <div className="col-head">
-                      <span className="col-dot"><Icon name={col.icono} size={14} /></span>
-                      <span className="col-title">{col.titulo}</span>
-                      <span className="col-count">{lista.length}</span>
-                    </div>
-                    <div className="col-body">
-                      {lista.length === 0 && <div className="empty sm"><Icon name="inbox" size={22} /><span>Sin pedidos</span></div>}
-                      {lista.map((p) => (
-                        <article
-                          key={p.id}
-                          className={`pedido ${arrastrando === p.id ? 'dragging' : ''}`}
-                          draggable
-                          onDragStart={() => setArrastrando(p.id)}
-                          onDragEnd={() => { setArrastrando(null); setColumnaSobre(null) }}
-                        >
-                          <div className="pedido-top">
-                            <div className="avatar sm">{iniciales(p.cliente)}</div>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div className="pedido-cliente">{p.cliente}</div>
-                              <div className="pedido-id">Pedido #{p.id}</div>
-                            </div>
-                            <span className="chip">{etiquetaBloque(p.bloque)}</span>
-                          </div>
-                          <p className="pedido-platillo">{p.platillo}</p>
-                          <div className="pedido-foot">
-                            <strong>{bs(p.total)}</strong>
-                            {p.estado === 'PENDIENTE' && (
-                              <button className="btn primary sm" onClick={() => setPedidos((prev) => prev.map((item) => item.id === p.id ? { ...item, estado: 'PREPARANDO' } : item))}>Preparar</button>
-                            )}
-                            {p.estado === 'PREPARANDO' && (
-                              <button className="btn success sm" onClick={() => setPedidos((prev) => prev.map((item) => item.id === p.id ? { ...item, estado: 'LISTO' } : item))}>Listos</button>
-                            )}
-                            {p.estado === 'LISTO' && (
-                              <button className="btn ghost sm" onClick={() => setPedidos((prev) => prev.filter((item) => item.id !== p.id))}>
-                                <Icon name="check" size={14} /> Entregado
-                              </button>
-                            )}
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </section>
-          )}
-
-          {/* ── 3. MENÚ ── */}
-          {pestana === 'menu' && (
-            <section className="split fade">
-              <div className="card">
-                <h3 className="card-title"><Icon name="plus" size={18} /> Publicar platillo</h3>
-                <form onSubmit={handleGuardarProducto} className="form">
-                  <label className="field">
-                    <span>Nombre</span>
-                    <input className="input" placeholder="Ej. Pique macho" value={nombreProd} onChange={(e) => setNombreProd(e.target.value)} required />
-                  </label>
-                  <label className="field">
-                    <span>Descripción</span>
-                    <input className="input" placeholder="Ingredientes" value={descProd} onChange={(e) => setDescProd(e.target.value)} />
-                  </label>
-                  <div className="row2">
-                    <label className="field">
-                      <span>Precio (Bs)</span>
-                      <input className="input" type="number" step="0.5" min="0" placeholder="0.00" value={precioProd} onChange={(e) => setPrecioProd(e.target.value)} required />
-                    </label>
-                    <label className="field">
-                      <span>Categoría</span>
-                      <select className="input" value={catProd} onChange={(e) => setCatProd(e.target.value)}>
-                        <option value="Almuerzo">Almuerzo</option>
-                        <option value="Bebida">Bebida</option>
-                        <option value="Snack">Snack</option>
-                      </select>
-                    </label>
-                  </div>
-                  <label className="field">
-                    <span>Disponible en</span>
-                    <select className="input" value={bloqueProd} onChange={(e) => setBloqueProd(e.target.value)}>
-                      <option value="BLOQUE_A">Bloque A</option>
-                      <option value="BLOQUE_B">Bloque B</option>
-                      <option value="AMBOS">Ambos bloques</option>
-                    </select>
-                  </label>
-                  <button type="submit" className="btn primary block">Guardar platillo</button>
-                </form>
-              </div>
-
-              <div className="card">
-                <div className="card-head">
-                  <h3 className="card-title nomargin"><Icon name="menu" size={18} /> Menú <span className="count">{productosFiltrados.length}</span></h3>
-                  <div className="search">
-                    <Icon name="search" size={16} />
-                    <input placeholder="Buscar platillo…" value={busquedaMenu} onChange={(e) => setBusquedaMenu(e.target.value)} />
-                  </div>
-                </div>
-                <div className="pills">
-                  {['TODAS', 'Almuerzo', 'Bebida', 'Snack'].map((c) => (
-                    <button key={c} className={`pill ${catFiltro === c ? 'active' : ''}`} onClick={() => setCatFiltro(c)}>{c === 'TODAS' ? 'Todas' : c}</button>
-                  ))}
-                </div>
-                <div className="table-wrap">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Platillo</th>
-                        <th>Precio</th>
-                        <th style={{ textAlign: 'right' }}>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {productosFiltrados.map((prod) => (
-                        <tr key={prod.id ?? prod.nombre}>
-                          <td>
-                            <div className="cell-main">{prod.nombre}</div>
-                            <div className="cell-sub">{prod.categoria} · {etiquetaBloque(prod.bloque)}</div>
-                          </td>
-                          <td className="num">{bs(prod.precio)}</td>
-                          <td style={{ textAlign: 'right' }}>
-                            <Switch checked={prod.disponible} onChange={() => void toggleDisponible(prod)} label={prod.disponible ? 'Disponible' : 'Agotado'} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {productosFiltrados.length === 0 && <div className="empty"><Icon name="inbox" size={28} /><span>No hay platillos</span></div>}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* ── 4. EMPLEADOS ── */}
+          {/* ── 2. EMPLEADOS ── */}
           {pestana === 'empleados' && (
             <section className="split fade">
               <div className="card">
@@ -760,7 +604,6 @@ export function AdminView() {
                     <span>Cargo</span>
                     <select className="input" value={cargoEmp} onChange={(e) => setCargoEmp(e.target.value)}>
                       <option value="Cajero">Cajero / Atención</option>
-                      <option value="Cocinero">Cocinero</option>
                       <option value="Administrador">Administrador</option>
                     </select>
                   </label>
@@ -772,6 +615,7 @@ export function AdminView() {
                     </select>
                   </label>
                   <button type="submit" className="btn primary block">Registrar empleado</button>
+                  <p className="form-hint">El correo y la contraseña se generan automáticamente. Los verás una sola vez al registrar.</p>
                 </form>
               </div>
 
@@ -791,11 +635,18 @@ export function AdminView() {
                           <div style={{ minWidth: 0 }}>
                             <div className="cell-main">{emp.nombre}</div>
                             <div className="cell-sub">{emp.cargo} · {etiquetaBloque(emp.bloque)}</div>
+                            <div className="cell-sub emp-mail">{emp.email ?? 'Sin acceso al sistema'}</div>
                           </div>
                         </div>
                         <div className="emp-foot">
                           <span className={`status ${emp.activo ? 'ok' : 'off'}`}><i />{emp.activo ? 'En turno' : 'Fuera'}</span>
-                          <button className="btn ghost sm" onClick={() => void toggleEmpleadoTurno(emp)}>{emp.activo ? 'Finalizar' : 'Iniciar'}</button>
+                          <div className="row-actions">
+                            <button className="btn ghost sm" onClick={() => void generarAcceso(emp)}>{emp.email ? 'Restablecer clave' : 'Crear acceso'}</button>
+                            <button className="btn ghost sm" onClick={() => void toggleEmpleadoTurno(emp)}>{emp.activo ? 'Finalizar' : 'Iniciar'}</button>
+                            <button className="btn softdanger sm" onClick={() => void eliminarEmpleado(emp)} aria-label={`Eliminar a ${emp.nombre}`} title="Eliminar del personal">
+                              <Icon name="trash" size={14} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -805,9 +656,13 @@ export function AdminView() {
             </section>
           )}
 
-          {/* ── 5. REPORTES ── */}
+          {/* ── 3. REPORTES ── */}
           {pestana === 'reportes' && (
             <div className="fade">
+              <div className="info-note">
+                <Icon name="alert" size={16} />
+                <span>Datos de ejemplo. Estos reportes se alimentarán de las ventas registradas por los cajeros.</span>
+              </div>
               <section className="charts">
                 <div className="card">
                   <h3 className="card-title"><Icon name="chart" size={18} /> Ventas por bloque</h3>
@@ -834,6 +689,26 @@ export function AdminView() {
         </main>
       </div>
 
+      {/* ── CREDENCIALES DEL EMPLEADO (se muestran una sola vez) ── */}
+      {credenciales && (
+        <div className="modal-overlay" onClick={() => setCredenciales(null)}>
+          <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon"><Icon name="shield" size={22} /></div>
+            <h3>Acceso de {credenciales.nombre}</h3>
+            <p className="modal-sub">
+              Entrega estos datos al empleado. Guarda la contraseña ahora: <strong>no se volverá a mostrar</strong> (si se pierde,
+              puedes restablecerla desde su tarjeta).
+            </p>
+            <div className="cred-row"><span>Correo</span><code>{credenciales.email}</code></div>
+            <div className="cred-row"><span>Contraseña</span><code>{credenciales.password}</code></div>
+            <div className="modal-actions">
+              <button className="btn ghost" onClick={copiarCredenciales}>Copiar datos</button>
+              <button className="btn primary" onClick={() => setCredenciales(null)}>Listo</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── TOAST NOTIFICACIONES ── */}
       {toast && (
         <div className={`toast ${toast.tipo}`} role="status">
@@ -856,15 +731,6 @@ function StatCard({ icon, label, value, hint, color }: { icon: IconName; label: 
         <span className="stat-hint">{hint}</span>
       </div>
     </div>
-  )
-}
-
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
-  return (
-    <button type="button" role="switch" aria-checked={checked} className={`switch ${checked ? 'on' : ''}`} onClick={onChange}>
-      <span className="knob" />
-      <span className="switch-text">{label}</span>
-    </button>
   )
 }
 
@@ -910,6 +776,11 @@ const CSS = `
 .adm :focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
 .wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 32px; }
 
+/* ── Cabecera RoleHome: evita que ocupe toda la pantalla y deje un hueco en blanco ── */
+.hero-wrap { height: auto; min-height: 0; }
+.hero-wrap > *, .hero-wrap > * > * { min-height: 0 !important; }
+.hero-wrap > * { height: auto !important; }
+
 /* ── Cuerpo: menú lateral + contenido ── */
 .shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 26px; align-items: start; margin-top: 28px; padding-bottom: 56px; }
 .side { position: sticky; top: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px 14px; box-shadow: 0 18px 40px -26px rgba(30,20,60,0.35); }
@@ -951,10 +822,14 @@ const CSS = `
 .btn.ghost:hover { background: #f5f6fa; }
 .btn.softdanger { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
 .btn.softdanger:hover { background: #e11d48; border-color: #e11d48; color: #fff; }
+.btn.softgreen { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.btn.softgreen:hover { background: #16a34a; border-color: #16a34a; color: #fff; }
+.row-actions { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 
-/* ── Aviso API ── */
+/* ── Avisos ── */
 .banner { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 20px; border-radius: 14px; background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; font-size: 13px; }
 .banner > div { flex: 1; }
+.info-note { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 16px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; color: #92600a; font-size: 13px; }
 
 /* ── Métricas ── */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
@@ -991,12 +866,10 @@ const CSS = `
 /* ── Avatares ── */
 .avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; background: #94a3b8; }
 .avatar.grad { background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
-.avatar.sm { width: 30px; height: 30px; font-size: 10px; background: #f3e8fc; color: var(--brand-2); }
 
 /* ── Formularios ── */
 .form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .input { width: 100%; padding: 11px 13px; border-radius: 10px; font-size: 14px; color: var(--text); background: #fff; border: 1px solid #dcdfe8; transition: border-color .2s, box-shadow .2s; }
 .input::placeholder { color: #a3a9b9; font-weight: 400; }
 .input:focus { outline: none; border-color: var(--brand-2); box-shadow: 0 0 0 4px rgba(138,0,212,0.12); }
@@ -1016,7 +889,7 @@ const CSS = `
 .table tbody tr { transition: background .15s; }
 .table tbody tr:hover { background: #faf7fd; }
 .table tbody tr:last-child td { border-bottom: 0; }
-.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table tr.eliminado td:not(:last-child) { opacity: 0.55; }
 .muted { color: var(--muted); white-space: nowrap; }
 .cell-main { font-weight: 600; }
 .cell-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -1024,49 +897,24 @@ const CSS = `
 .chip { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #f1f2f7; color: #4b5263; white-space: nowrap; }
 .chip.violet { background: #f9e5f6; color: var(--brand); }
 .chip.amber { background: #fef3c7; color: #92600a; }
-
-/* ── Switch ── */
-.switch { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; padding: 0; }
-.switch .knob { width: 38px; height: 22px; border-radius: 12px; background: #d4d8e2; position: relative; transition: background .2s; flex-shrink: 0; }
-.switch .knob::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 2px 5px rgba(0,0,0,.25); }
-.switch.on .knob { background: var(--ok); }
-.switch.on .knob::after { transform: translateX(16px); }
-.switch.on { color: var(--ok); }
-.switch-text { min-width: 66px; text-align: left; }
-
-/* ── Kanban ── */
-.kanban { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
-.col { background: #eef0f6; border: 1px solid var(--border); border-radius: 18px; padding: 14px; min-height: 420px; transition: border-color .2s, background .2s, box-shadow .2s; }
-.col.over { border-color: var(--c); background: color-mix(in srgb, var(--c) 8%, #fff); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 14%, transparent); }
-.col-head { display: flex; align-items: center; gap: 10px; padding: 4px 4px 14px; border-bottom: 2px solid color-mix(in srgb, var(--c) 60%, transparent); }
-.col-dot { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--c); background: color-mix(in srgb, var(--c) 14%, #fff); }
-.col-title { font-weight: 700; font-size: 14px; flex: 1; }
-.col-count { min-width: 24px; height: 24px; padding: 0 8px; display: grid; place-items: center; border-radius: 12px; font-size: 12px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 14%, #fff); }
-.col-body { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
-.pedido { padding: 14px; border-radius: 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--c); cursor: grab; box-shadow: 0 6px 16px -14px rgba(30,20,60,0.5); transition: transform .18s, box-shadow .2s, opacity .2s; }
-.pedido:hover { transform: translateY(-2px); box-shadow: 0 16px 28px -18px rgba(30,20,60,0.55); }
-.pedido:active { cursor: grabbing; }
-.pedido.dragging { opacity: 0.4; transform: scale(0.98); }
-.pedido-top { display: flex; align-items: center; gap: 10px; }
-.pedido-cliente { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pedido-id { font-size: 11px; color: var(--muted); }
-.pedido-platillo { margin: 12px 0 !important; color: #4b5263; font-size: 13px; line-height: 1.45; }
-.pedido-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.pedido-foot strong { font-size: 15px; }
+.chip.green { background: #dcfce7; color: #166534; }
+.chip.red { background: #ffe4e6; color: #be123c; }
 
 /* ── Empleados ── */
-.emp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.emp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .emp { padding: 16px; border-radius: 14px; background: #fbfbfe; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px; transition: transform .18s, border-color .2s; }
 .emp:hover { transform: translateY(-2px); }
 .emp.on { border-color: #a7e3bd; background: #f6fdf9; }
 .emp-top { display: flex; align-items: center; gap: 12px; }
 .emp-top .avatar { width: 42px; height: 42px; font-size: 14px; }
-.emp-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.emp-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.emp-mail { word-break: break-all; }
 .status { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
 .status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .status.ok { color: var(--ok); }
 .status.ok i { box-shadow: 0 0 0 4px rgba(22,163,74,0.16); }
 .status.off { color: var(--bad); }
+.form-hint { font-size: 12px; color: var(--muted); line-height: 1.45; }
 
 /* ── Gráficos ── */
 .charts { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
@@ -1081,10 +929,20 @@ const CSS = `
 .legend i { width: 12px; height: 12px; border-radius: 4px; }
 .legend em { font-style: normal; color: var(--muted); font-size: 12px; min-width: 34px; text-align: right; }
 
+/* ── Ventana de credenciales ── */
+.modal-overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(20, 10, 40, 0.55); backdrop-filter: blur(3px); animation: fadeUp .2s ease both; }
+.modal { width: 100%; max-width: 440px; background: #fff; border-radius: 20px; padding: 26px; box-shadow: 0 30px 70px -20px rgba(0,0,0,0.5); }
+.modal-icon { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--brand-2); background: #f3e8fc; margin-bottom: 14px; }
+.modal h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.modal-sub { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 8px 0 18px; }
+.cred-row { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; margin-bottom: 10px; border-radius: 12px; background: #faf7fd; border: 1px solid #eadcf7; }
+.cred-row span { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8a91a3; }
+.cred-row code { font-size: 15px; font-weight: 600; background: transparent; padding: 0; user-select: all; word-break: break-all; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
 /* ── Vacíos / toast / animaciones ── */
 .empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 0; color: var(--muted); font-size: 13px; }
-.empty.sm { padding: 26px 0; font-size: 12px; }
-.toast { position: fixed; right: 24px; bottom: 24px; z-index: 60; display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 18px 40px -14px rgba(0,0,0,0.5); animation: slideIn .3s cubic-bezier(.2,.8,.2,1); }
+.toast { position: fixed; right: 24px; bottom: 24px; z-index: 80; display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 18px 40px -14px rgba(0,0,0,0.5); animation: slideIn .3s cubic-bezier(.2,.8,.2,1); max-width: min(480px, calc(100vw - 32px)); }
 .toast.ok { background: #16a34a; }
 .toast.error { background: #e11d48; }
 .fade { animation: fadeUp .35s ease both; }
@@ -1106,8 +964,11 @@ const CSS = `
   .side-heading { display: none; }
   .nav { flex-direction: row; overflow-x: auto; padding-bottom: 2px; }
   .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; }
+<<<<<<< HEAD
   .kanban { grid-template-columns: 1fr; }
   .col { min-height: 0; }
+=======
+>>>>>>> 05381ec9fa7a2be9f883219c4182df5cb9263c7e
   .charts { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
@@ -1115,8 +976,7 @@ const CSS = `
   .hide-sm { display: none; }
   .btn { padding: 10px 12px; }
   .stats { grid-template-columns: 1fr; }
-  .row2 { grid-template-columns: 1fr; }
   .search input { width: 120px; }
-  .toast { left: 16px; right: 16px; bottom: 16px; }
+  .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
 }
 `

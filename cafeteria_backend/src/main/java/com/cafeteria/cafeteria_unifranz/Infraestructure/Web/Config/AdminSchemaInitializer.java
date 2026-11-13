@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
  * Prepara en PostgreSQL lo que necesita el panel de administración.
  * Es idempotente: se puede ejecutar en cada arranque sin duplicar nada.
  *
- *  - productos.bloque : en qué bloque se vende el platillo (BLOQUE_A, BLOQUE_B o AMBOS).
- *  - empleados        : personal de la cafetería (no son usuarios de login).
+ *  - empleados           : personal de la cafetería.
+ *  - empleados.usuario_id: cuenta de acceso (tabla usuarios) enlazada al empleado.
  */
 @Component
 public class AdminSchemaInitializer implements ApplicationRunner {
@@ -23,11 +23,6 @@ public class AdminSchemaInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        jdbc.sql("""
-                ALTER TABLE productos
-                ADD COLUMN IF NOT EXISTS bloque VARCHAR(20) NOT NULL DEFAULT 'AMBOS'
-                """).update();
-
         jdbc.sql("""
                 CREATE TABLE IF NOT EXISTS empleados (
                     id SERIAL PRIMARY KEY,
@@ -42,6 +37,11 @@ public class AdminSchemaInitializer implements ApplicationRunner {
                     eliminado_por VARCHAR(100),
                     eliminado_cuando TIMESTAMP
                 )
+                """).update();
+
+        jdbc.sql("""
+                ALTER TABLE empleados
+                ADD COLUMN IF NOT EXISTS usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
                 """).update();
     }
 }

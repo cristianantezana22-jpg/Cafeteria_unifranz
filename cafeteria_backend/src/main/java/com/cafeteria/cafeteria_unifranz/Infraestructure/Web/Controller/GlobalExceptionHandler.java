@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+<<<<<<< HEAD
 
 import com.cafeteria.cafeteria_unifranz.Domain.InvalidCredentialsException;
 import com.cafeteria.cafeteria_unifranz.Domain.EmailAlreadyRegisteredException;
@@ -17,6 +18,16 @@ import com.cafeteria.cafeteria_unifranz.Domain.RoleNotAllowedException;
 import com.cafeteria.cafeteria_unifranz.Domain.CajeroSinBloqueException;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoAlmuerzoRestringidoException;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoNoEncontradoException;
+=======
+import org.springframework.web.server.ResponseStatusException;
+
+import com.cafeteria.cafeteria_unifranz.Domain.CajeroSinBloqueException;
+import com.cafeteria.cafeteria_unifranz.Domain.EmailAlreadyRegisteredException;
+import com.cafeteria.cafeteria_unifranz.Domain.InvalidCredentialsException;
+import com.cafeteria.cafeteria_unifranz.Domain.PedidoAlmuerzoRestringidoException;
+import com.cafeteria.cafeteria_unifranz.Domain.PedidoNoEncontradoException;
+import com.cafeteria.cafeteria_unifranz.Domain.RoleNotAllowedException;
+>>>>>>> 05381ec9fa7a2be9f883219c4182df5cb9263c7e
 import com.cafeteria.cafeteria_unifranz.Domain.TransicionEstadoInvalidaException;
 import com.cafeteria.cafeteria_unifranz.application.dto.ErrorResponse;
 
