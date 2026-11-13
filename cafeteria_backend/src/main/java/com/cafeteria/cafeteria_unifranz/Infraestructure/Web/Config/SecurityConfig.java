@@ -39,6 +39,12 @@ public class SecurityConfig {
                                 "/api/auth/login", "/api/auth/register", "/api/auth/google").permitAll()
                         // PERMITE EL ACCESO A TODAS LAS RUTAS DE ADMINISTRADOR (USUARIOS, PRODUCTOS, EMPLEADOS)
                         .requestMatchers("/api/admin/**").permitAll()
+                        // Sin esto, cualquier error interno (500) se ve como un 401 falso al reenviarse a /error.
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+                        // Panel de administración: solo con un token de ADMIN.
+                        // Si necesitas desactivarlo temporalmente, cambia hasRole("ADMIN") por permitAll().
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products", "/api/products/**",
                                 "/api/categories", "/api/categories/**",
