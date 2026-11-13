@@ -1,0 +1,250 @@
+.order-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #fff;
+}
+
+.order-card--pendiente {
+  border-top: 3px solid var(--forest);
+}
+
+.order-card--en_preparacion,
+.order-card--listo {
+  border-top: 3px solid #111;
+}
+
+.order-card--entregado,
+.order-card--cancelado {
+  border-top: 3px solid var(--line);
+  opacity: 0.78;
+}
+
+.order-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-card__ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-card__ticket-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.order-card__ticket strong {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.order-card__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.order-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  color: #111;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.order-card--pendiente .order-card__status {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
+.order-card--pendiente .order-card__status .icon {
+  color: var(--forest);
+}
+
+.order-card__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.order-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-steps__item i {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.order-steps__item.is-done i {
+  background: #111;
+}
+
+.order-steps__item.is-current i {
+  background: var(--forest);
+}
+
+.order-card__customer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.order-card__customer span,
+.order-card__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-card__tag {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  color: #111;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.order-card__items {
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  list-style: none;
+}
+
+.order-card__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.order-card__items li span:last-child {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.order-card__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-card__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.order-card__total span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.order-card__total strong {
+  font-size: 18px;
+}
+
+.order-card__locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed #111;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.order-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.order-card__advance,
+.order-card__cancel {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.order-card__advance {
+  flex: 1;
+  border: 0;
+  color: #fff;
+  background: var(--forest);
+}
+
+.order-card__advance:hover:not(:disabled) {
+  background: #111;
+}
+
+.order-card__cancel {
+  border: 1px solid #111;
+  color: #111;
+  background: #fff;
+}
+
+.order-card__cancel:hover:not(:disabled) {
+  color: #fff;
+  background: #111;
+}
+
+.order-card__cancel:hover:not(:disabled) .icon {
+  color: #fff;
+}
+
+.order-card__advance:disabled,
+.order-card__cancel:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}

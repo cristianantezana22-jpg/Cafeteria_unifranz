@@ -1,0 +1,123 @@
+.kiosk-step-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(18 22 20 / 72%);
+}
+
+.service-mode-modal {
+  width: min(100%, 600px);
+  padding: 38px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
+  text-align: center;
+}
+
+.service-mode-modal h2,
+.ticket-modal h2 {
+  margin: 10px 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 400;
+}
+
+.service-mode-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.service-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 28px 0 14px;
+}
+
+.service-mode-option {
+  display: flex;
+  min-height: 170px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.service-mode-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--coral);
+  background: #fff9fe;
+}
+
+.service-mode-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 13px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--coral);
+  background: #fbedf9;
+}
+
+.service-mode-icon svg {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.service-mode-option strong {
+  font-size: 15px;
+}
+
+.service-mode-option small {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.service-mode-cancel {
+  padding: 9px 18px;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.service-mode-option:focus-visible,
+.service-mode-cancel:focus-visible,
+.ticket-done:focus-visible {
+  outline: 3px solid rgb(166 2 151 / 35%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .service-mode-modal {
+    padding: 30px 20px 22px;
+  }
+
+  .service-mode-options {
+    grid-template-columns: 1fr;
+    margin-top: 20px;
+  }
+
+  .service-mode-option {
+    min-height: 130px;
+  }
+}
