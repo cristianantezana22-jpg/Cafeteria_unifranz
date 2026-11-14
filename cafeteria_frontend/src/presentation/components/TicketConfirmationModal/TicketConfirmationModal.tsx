@@ -1,12 +1,20 @@
+import type { CustomerOrder } from '../../../domain/models'
+import { QRCodeSVG } from 'qrcode.react'
 import './ticket-confirmation-modal.css'
 
 type TicketConfirmationModalProps = {
-  orderNumber: string | number
+  ticketCode: string
+  qrValue: string
+  items: CustomerOrder['items']
+  total: number
   onDone: () => void
 }
 
 export function TicketConfirmationModal({
-  orderNumber,
+  ticketCode,
+  qrValue,
+  items,
+  total,
   onDone,
 }: TicketConfirmationModalProps) {
   return (
@@ -21,9 +29,16 @@ export function TicketConfirmationModal({
           <svg viewBox="0 0 24 24" focusable="false"><path d="m5 12 4.5 4.5L19 7" /></svg>
         </span>
         <p className="eyebrow accent">PEDIDO REGISTRADO</p>
-        <h2 id="ticket-modal-title">Gracias por tu compra</h2>
-        <p className="ticket-order-number">Ticket N° {orderNumber}</p>
-
+        <h2 id="ticket-modal-title">Tu ticket</h2>
+        <p className="ticket-order-number">{ticketCode}</p>
+        <div className="ticket-qr">
+          <QRCodeSVG value={qrValue} size={230} level="H" includeMargin />
+        </div>
+        <p className="ticket-qr-caption">¡Escanea el QR para el recibo!</p>
+        <p className="ticket-total">
+          <span>{itemCount} {itemCount === 1 ? 'producto' : 'productos'} · Total</span>
+          <strong>Bs {Number(total).toFixed(2)}</strong>
+        </p>
         <button className="ticket-done" type="button" onClick={onDone}>
           Aceptar
         </button>

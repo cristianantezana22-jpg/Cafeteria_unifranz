@@ -1,5 +1,6 @@
 package com.cafeteria.cafeteria_unifranz.Domain;
 
+import java.util.List;
 import java.util.Optional;
 
 /** Puerto de salida: la capa de infraestructura lo implementa. */
@@ -11,4 +12,10 @@ public interface UsuarioRepository {
     boolean existsByEmail(String email);
 
     Usuario save(Usuario usuario);
+
+    List<Usuario> findAll();
+
+    Optional<Usuario> findById(Integer id);
+
+    void deleteById(Integer id);
 }

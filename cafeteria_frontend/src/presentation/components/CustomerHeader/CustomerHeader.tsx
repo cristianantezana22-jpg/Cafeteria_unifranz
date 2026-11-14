@@ -1,6 +1,7 @@
 import brandLogo from '../../assets/pink-paper-logo.svg'
 import type { CustomerHeaderProps } from './CustomerHeader.logic'
 import { scrollToCart } from './CustomerHeader.logic'
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
 import './customer-header.css'
 
 export function CustomerHeader({
@@ -17,6 +18,7 @@ export function CustomerHeader({
         <span className="location-label"><i /> LA PAZ, BOLIVIA</span>
         <span className="topbar-divider" />
         <span className="customer-name">{customerName}</span>
+        <ThemeToggle />
         <button
           className="cart-toggle"
           onClick={scrollToCart}

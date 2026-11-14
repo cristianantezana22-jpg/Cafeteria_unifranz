@@ -11,3 +11,14 @@ export function createLoginCustomer(
     return session
   }
 }
+
+export function createLoginWithGoogle(
+  gateway: CafeteriaGateway,
+  sessions: SessionRepository,
+) {
+  return async (credential: string) => {
+    const session = await gateway.loginWithGoogle(credential)
+    sessions.save(session)
+    return session
+  }
+}

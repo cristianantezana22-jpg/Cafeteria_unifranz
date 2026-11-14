@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.cafeteria.cafeteria_unifranz.application.service.TokenService;
 
-/** Lee "Authorization: Bearer <token>" (también acepta el token sin "Bearer"). */
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";

@@ -11,10 +11,12 @@ import type {
   OrderRequestItem,
   PlaceOrderRequest,
   Product,
+  ProductAvailability,
 } from '../../domain/models'
 
 export interface CafeteriaGateway {
   login: (email: string, password: string) => Promise<CustomerSession>
+  loginWithGoogle: (credential: string) => Promise<CustomerSession>
   register: (
     name: string,
     email: string,
@@ -22,7 +24,7 @@ export interface CafeteriaGateway {
   ) => Promise<CustomerSession>
   getProducts: (token?: string) => Promise<Product[]>
   getCategories: (token?: string) => Promise<Category[]>
-  getFeaturedProducts: (token: string) => Promise<Product[]>
+  getFeaturedProducts: (token?: string) => Promise<Product[]>
   getCashierOrders: (token: string) => Promise<CashierOrder[]>
   getCashierProfile: (token: string) => Promise<CashierProfile>
   updateOrderStatus: (
@@ -42,8 +44,17 @@ export interface CafeteriaGateway {
     request: MenuProductRequest,
   ) => Promise<MenuProduct>
   deleteMenuProduct: (token: string, productId: string) => Promise<void>
-  placeOrder: (
+  setProductAvailability: (
     token: string,
+    productId: string,
+    available: boolean,
+  ) => Promise<ProductAvailability>
+  placeOrder: (
+    token: string | undefined,
     request: PlaceOrderRequest | OrderRequestItem[],
   ) => Promise<CustomerOrder>
+  getCustomerOrderStatus: (
+    token: string,
+    orderId: string,
+  ) => Promise<OrderStatus>
 }

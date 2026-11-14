@@ -4,6 +4,7 @@ import { CashierOrderCard } from '../CashierOrderCard/CashierOrderCard'
 import { Icon } from '../Icon/Icon'
 import { FILTERS, useCashierBoard } from './CashierBoard.logic'
 import { CashierMenuView } from '../../views/CashierMenuView'
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
 import './cashier-board.css'
 
 export function CashierBoard() {
@@ -47,6 +48,7 @@ export function CashierBoard() {
           </p>
         </div>
         <div className="cashier-header-actions">
+          <ThemeToggle />
           <button
             className="cashier-menu-link"
             onClick={() => setActiveSection('menu')}
@@ -64,6 +66,20 @@ export function CashierBoard() {
       </section>
 
       <section className="cashier-section" aria-labelledby="orders-title">
+        <div className="cashier-metrics" aria-label="Resumen de pedidos">
+          <article className="cashier-metric">
+            <span>Pedidos totales</span>
+            <strong>{counts.TODOS}</strong>
+          </article>
+          <article className="cashier-metric">
+            <span>Pendientes</span>
+            <strong>{counts.PENDIENTE}</strong>
+          </article>
+          <article className="cashier-metric">
+            <span>En preparación</span>
+            <strong>{counts.EN_PREPARACION}</strong>
+          </article>
+        </div>
         <div className="section-heading">
           <div>
             <p className="eyebrow accent">SEGUIMIENTO</p>

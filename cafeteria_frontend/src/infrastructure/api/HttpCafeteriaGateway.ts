@@ -13,6 +13,7 @@ import type {
   OrderRequestItem,
   PlaceOrderRequest,
   Product,
+  ProductAvailability,
   UserRole,
 } from '../../domain/models'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
@@ -53,7 +54,6 @@ function bearer(token: string) {
   return { Authorization: `Bearer ${token}` }
 }
 
-// Convierte los errores de axios en mensajes legibles para la UI.
 function toReadableError(error: unknown, fallback: string): Error {
   if (isAxiosError<{ detail?: string; message?: string }>(error)) {
     if (!error.response) {
@@ -85,6 +85,17 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
+  async loginWithGoogle(credential: string): Promise<CustomerSession> {
+    try {
+      const response = await api.post<AuthResponse>('/api/auth/google', {
+        credential,
+      })
+      return mapSession(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo iniciar sesión con Google.')
+    }
+  }
+
   async register(
     name: string,
     email: string,
@@ -99,8 +110,8 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
       return mapSession(response.data)
     } catch (error) {
       throw toReadableError(error, 'No se pudo crear la cuenta. Inténtalo de nuevo.')
-    } // <- Llave de cierre del catch añadida
-  }   // <- Llave de cierre del método register añadida
+    }
+  }
 
   async getProducts(token?: string): Promise<Product[]> {
     try {
@@ -129,7 +140,7 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
-  async getFeaturedProducts(token: string): Promise<Product[]> {
+  async getFeaturedProducts(token?: string): Promise<Product[]> {
     return this.getProducts(token)
   }
 
@@ -248,7 +259,7 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
   }
 
   async placeOrder(
-    token: string,
+    token: string | undefined,
     request: PlaceOrderRequest | OrderRequestItem[],
   ): Promise<CustomerOrder> {
     try {
@@ -263,11 +274,40 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
       const response = await api.post<OrderResponse>(
         '/api/orders',
         body,
-        { headers: bearer(token) },
+        token ? { headers: bearer(token) } : undefined,
       )
       return mapOrder(response.data)
     } catch (error) {
       throw toReadableError(error, 'No se pudo registrar el pedido.')
+    }
+  }
+
+  async setProductAvailability(
+    token: string,
+    productId: string,
+    available: boolean,
+  ): Promise<ProductAvailability> {
+    try {
+      const response = await api.patch<{ id: number; available: boolean }>(
+        `/api/cajero/menu/products/${productId}/availability`,
+        { available },
+        { headers: bearer(token) },
+      )
+      return { id: String(response.data.id), available: response.data.available }
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo cambiar la disponibilidad del producto.')
+    }
+  }
+
+  async getCustomerOrderStatus(token: string, orderId: string): Promise<OrderStatus> {
+    try {
+      const response = await api.get<{ estado: OrderStatus }>(
+        `/api/orders/${orderId}/estado`,
+        { headers: bearer(token) },
+      )
+      return response.data.estado
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo consultar el estado del pedido.')
     }
   }
 }
@@ -327,6 +367,7 @@ type MenuProductResponse = {
   categoryId: number
   imageUrl: string
   featured: boolean
+  available?: boolean
 }
 
 type ProductResponse = {
@@ -336,6 +377,7 @@ type ProductResponse = {
   price: number
   imageUrl: string
   category: CategoryResponse
+  available?: boolean
 }
 
 type OrderResponse = {
@@ -394,6 +436,7 @@ function mapMenuProduct(product: MenuProductResponse): MenuProduct {
     categoryId: product.categoryId,
     imageUrl: product.imageUrl,
     featured: product.featured,
+    available: product.available !== false,
   }
 }
 
@@ -415,6 +458,7 @@ function mapProduct(product: ProductResponse): Product {
     category: product.category.name,
     imageUrl: product.imageUrl,
     featured: true,
+    available: product.available !== false,
   }
 }
 

@@ -4,18 +4,22 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgb(18 22 20 / 65%);
+  padding: 24px;
+  overflow-y: auto;
+  background: rgb(31 18 34 / 70%);
+  backdrop-filter: blur(7px);
 }
 
 .payment-modal {
   position: relative;
   width: min(100%, 480px);
-  padding: 38px 28px 28px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--paper);
-  box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
+  max-height: 100%;
+  padding: 34px;
+  overflow-y: auto;
+  border: 1px solid rgb(255 255 255 / 75%);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #fff 0%, #fbf7fb 100%);
+  box-shadow: 0 28px 90px rgb(22 8 25 / 30%);
 }
 
 .payment-modal-close {
@@ -26,9 +30,10 @@
   height: 38px;
   border: 0;
   border-radius: 50%;
-  color: var(--muted);
-  background: transparent;
+  color: #77707a;
+  background: #f3edf4;
   cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .payment-modal-close svg {
@@ -41,91 +46,310 @@
 }
 
 .payment-modal-close:hover:not(:disabled) {
-  color: var(--ink);
-  background: #f3f3f1;
+  color: #6d075f;
+  background: #ead9e9;
+  transform: rotate(90deg);
+}
+
+.payment-modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.payment-modal-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(145deg, #be20a5, #79096f);
+  box-shadow: 0 8px 18px rgb(166 2 151 / 20%);
+}
+
+.payment-modal-mark svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .payment-modal h2 {
-  margin: 10px 0 0;
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: clamp(28px, 3vw, 38px);
-  font-weight: 400;
-  text-align: center;
+  margin: 20px 0 8px;
+  color: #2e2131;
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
 }
 
-.payment-modal-total {
-  margin: 12px 0 0;
-  color: #5d2d66;
-  font-size: 15px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.payment-modal-qr-wrap {
-  display: grid;
-  place-items: center;
-  margin-top: 24px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-}
-
-.payment-modal-qr-image {
-  display: block;
-  width: min(100%, 260px);
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: contain;
-  border-radius: 12px;
+.payment-modal-copy {
+  margin: 0;
+  color: #766d78;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .payment-modal-error {
-  margin: 18px 0 0;
-  color: #a63f30;
+  margin: 15px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #f1c8c0;
+  border-radius: 12px;
+  color: #9d3326;
+  background: #fff5f2;
   font-size: 12px;
   line-height: 1.5;
 }
 
-.payment-modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
+.payment-modal-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
 }
 
-.payment-modal-actions button {
-  flex: 1;
-  min-height: 48px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
+.payment-option {
+  display: grid;
+  min-height: 72px;
+  grid-template-columns: 44px 1fr 22px;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 15px;
+  border: 1px solid #e8e0e9;
+  border-radius: 15px;
+  color: #322936;
+  background: rgb(255 255 255 / 82%);
   cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.payment-modal-cancel {
-  border: 1px solid var(--line);
-  color: var(--ink);
-  background: #fff;
+.payment-option:hover:not(:disabled) {
+  border-color: #bd60b2;
+  transform: translateY(-1px);
 }
 
-.payment-modal-confirm {
-  border: 0;
-  color: #fff;
-  background: linear-gradient(135deg, #a60297, #4f1d66);
+.payment-option.is-selected {
+  border-color: #a60297;
+  background: #fcf3fb;
+  box-shadow: 0 0 0 3px rgb(166 2 151 / 8%);
 }
 
 .payment-modal-close:disabled,
 .payment-modal-actions button:disabled {
   cursor: wait;
+  opacity: 0.65;
+}
+
+.payment-option-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 13px;
+  color: #910a83;
+  background: #f5e7f3;
+}
+
+.payment-option-icon svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.payment-option-text-icon {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.payment-option-label strong,
+.payment-option-label small {
+  display: block;
+}
+
+.payment-option-label strong {
+  font-size: 13px;
+}
+
+.payment-option-label small {
+  margin-top: 4px;
+  color: #7e7480;
+  font-size: 11px;
+}
+
+.payment-option-selection {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1.5px solid #c8bdca;
+  border-radius: 50%;
+}
+
+.payment-option.is-selected .payment-option-selection {
+  border-color: #a60297;
+}
+
+.payment-option-selection span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #a60297;
+}
+
+.payment-qr-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 17px;
+  padding: 16px;
+  border: 1px solid #eee3ef;
+  border-radius: 18px;
+  background: #fff;
+  animation: payment-qr-in 180ms ease-out;
+}
+
+.payment-qr-panel img {
+  display: block;
+  width: min(100%, 206px);
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 9px;
+}
+
+.payment-qr-panel p {
+  margin: 0;
+  color: #766d78;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.payment-confirm-button {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 17px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(115deg, #ad149c, #7d0871);
+  box-shadow: 0 10px 22px rgb(166 2 151 / 21%);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  transition: box-shadow 160ms ease, transform 160ms ease, opacity 160ms ease;
+}
+
+.payment-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.payment-modal-actions .payment-confirm-button {
+  margin-top: 0;
+}
+
+.payment-cancel-button {
+  min-height: 52px;
+  padding: 12px 18px;
+  border: 1px solid #e8e0e9;
+  border-radius: 14px;
+  color: #322936;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.payment-cancel-button:disabled {
+  cursor: wait;
   opacity: 0.7;
+}
+
+.payment-modal-actions .payment-cancel-button {
+  flex: 0 0 120px;
+}
+
+.payment-modal-actions .payment-confirm-button {
+  flex: 1;
+}
+
+.payment-confirm-button:hover:not(:disabled) {
+  box-shadow: 0 13px 27px rgb(166 2 151 / 28%);
+  transform: translateY(-1px);
+}
+
+.payment-confirm-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.payment-confirm-button:focus-visible,
+.payment-option:focus-visible,
+.payment-modal-close:focus-visible {
+  outline: 3px solid #d88ccc;
+  outline-offset: 3px;
+}
+
+.payment-confirm-button span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@keyframes payment-qr-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 520px) {
   .payment-modal {
-    padding: 32px 20px 20px;
+    padding: 25px 20px 20px;
+    border-radius: 20px;
   }
 
-  .payment-modal-actions {
-    flex-direction: column;
+  .payment-modal h2 {
+    margin-top: 16px;
+    font-size: 22px;
+  }
+
+  .payment-option {
+    grid-template-columns: 40px 1fr 20px;
+    gap: 11px;
+    padding: 11px;
+  }
+
+  .payment-option-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .payment-qr-panel img { width: min(100%, 184px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .payment-modal *,
+  .payment-modal *::before,
+  .payment-modal *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

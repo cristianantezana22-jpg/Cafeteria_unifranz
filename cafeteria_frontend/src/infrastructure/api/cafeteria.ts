@@ -1,18 +1,26 @@
 import { createGetFeaturedProducts } from '../../application/use-cases/getFeaturedProducts'
 import { createGetCashierOrders } from '../../application/use-cases/getCashierOrders'
 import { createGetCashierProfile } from '../../application/use-cases/getCashierProfile'
-import { createLoginCustomer } from '../../application/use-cases/loginCustomer'
+import {
+  createLoginCustomer,
+  createLoginWithGoogle,
+} from '../../application/use-cases/loginCustomer'
 import { createPlaceCustomerOrder } from '../../application/use-cases/placeCustomerOrder'
 import { createRegisterCustomer } from '../../application/use-cases/registerCustomer'
 import { createUpdateCashierOrderStatus } from '../../application/use-cases/updateCashierOrderStatus'
 import { HttpCafeteriaGateway } from './HttpCafeteriaGateway'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 import type { CustomerSession, MenuProductRequest } from '../../domain/models'
+import { createGetCustomerOrderStatus } from '../../application/use-cases/getCustomerOrderStatus'
+import { createSetProductAvailability } from '../../application/use-cases/setProductAvailability'
+import { createSubscribeToRealtime } from '../../application/use-cases/subscribeToRealtime'
+import { SseRealtimeGateway } from './SseRealtimeGateway'
 
 const gateway = new HttpCafeteriaGateway()
 const sessions = new LocalSessionRepository()
 
 export const loginCustomer = createLoginCustomer(gateway, sessions)
+export const loginWithGoogle = createLoginWithGoogle(gateway, sessions)
 export const registerCustomer = createRegisterCustomer(gateway, sessions)
 export const getFeaturedProducts = createGetFeaturedProducts(gateway, sessions)
 export const getCashierOrders = createGetCashierOrders(gateway, sessions)
@@ -21,6 +29,9 @@ export const updateCashierOrderStatus = createUpdateCashierOrderStatus(
   gateway,
   sessions,
 )
+export const setProductAvailability = createSetProductAvailability(gateway, sessions)
+export const getCustomerOrderStatus = createGetCustomerOrderStatus(gateway, sessions)
+export const subscribeToRealtime = createSubscribeToRealtime(new SseRealtimeGateway())
 function requireSessionToken() {
   const session = sessions.get()
   if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.')

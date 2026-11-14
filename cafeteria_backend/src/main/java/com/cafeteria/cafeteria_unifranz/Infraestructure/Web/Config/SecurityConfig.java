@@ -35,8 +35,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login", "/api/auth/register", "/api/auth/google").permitAll()
+                        // PERMITE EL ACCESO A TODAS LAS RUTAS DE ADMINISTRADOR (USUARIOS, PRODUCTOS, EMPLEADOS)
+                        .requestMatchers("/api/admin/**").permitAll()
+                        // Sin esto, cualquier error interno (500) se ve como un 401 falso al reenviarse a /error.
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        // Panel de administración: solo con un token de ADMIN.
+                        // Si necesitas desactivarlo temporalmente, cambia hasRole("ADMIN") por permitAll().
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products", "/api/products/**",
                                 "/api/categories", "/api/categories/**",
@@ -46,6 +54,7 @@ public class SecurityConfig {
                                 "/api/orders", "/api/orders/**",
                                 "/api/pedidos", "/api/pedidos/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders/**", "/api/pedidos/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/stream/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);

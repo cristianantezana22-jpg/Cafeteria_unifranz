@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   loginCustomer,
+  loginWithGoogle,
   saveCustomerSession,
 } from '../../../infrastructure/api/cafeteria'
 import type { CustomerSession } from '../../../domain/models'
@@ -51,6 +52,24 @@ export function useLoginForm() {
     }
   }
 
+  async function handleGoogleCredential(credential: string) {
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const session = await loginWithGoogle(credential)
+      await navigate({ to: getRolePath(session.role) })
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo iniciar sesión con Google.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     email,
     setEmail,
@@ -59,5 +78,7 @@ export function useLoginForm() {
     error,
     isLoading,
     handleSubmit,
+    handleGoogleCredential,
+    setError,
   }
 }

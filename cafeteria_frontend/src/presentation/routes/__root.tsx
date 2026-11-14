@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { Link } from '@tanstack/react-router'
 
 import appCss from '../../styles.css?url'
 
@@ -32,12 +33,24 @@ export const Route = createRootRoute({
       { rel: 'stylesheet', href: appCss },
     ],
   }),
+  notFoundComponent: NotFoundPage,
   component: RootComponent,
   shellComponent: RootDocument,
 })
 
 function RootComponent() {
   return <Outlet />
+}
+
+function NotFoundPage() {
+  return (
+    <main className="not-found-page">
+      <p className="not-found-code">404</p>
+      <h1>Esta página no existe</h1>
+      <p>La dirección puede haber cambiado o no estar disponible.</p>
+      <Link to="/">Volver al inicio</Link>
+    </main>
+  )
 }
 
 function RootDocument({ children }: { children: ReactNode }) {

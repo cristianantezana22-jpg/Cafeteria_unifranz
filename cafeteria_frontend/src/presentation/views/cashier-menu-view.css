@@ -605,32 +605,29 @@
   gap: 5px;
 }
 
-.cashier-menu-icon-button {
+.cashier-menu-action-button {
   display: grid;
-  width: 29px;
+  min-width: 58px;
   height: 29px;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 8px;
+  border: 1px solid #eee2ef;
   border-radius: 7px;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.03);
+  color: #777587;
+  background: #fff;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.cashier-menu-icon-button:hover:not(:disabled) {
-  border-color: rgba(236, 72, 153, 0.25);
-  color: #fff;
-  background: rgba(236, 72, 153, 0.12);
+.cashier-menu-action-button:hover:not(:disabled) {
+  border-color: #d7b4d4;
+  color: var(--cashier-menu-purple);
+  background: #fbf0fa;
 }
 
-.cashier-menu-icon-button.is-delete:hover:not(:disabled) {
-  border-color: rgba(251, 113, 133, 0.26);
-  color: #fecdd3;
-  background: rgba(244, 63, 94, 0.1);
-}
-
-.cashier-menu-icon-button:disabled {
+.cashier-menu-action-button:disabled {
   cursor: wait;
   opacity: .5;
 }

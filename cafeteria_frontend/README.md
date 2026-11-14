@@ -9,6 +9,15 @@ npm install
 npm run dev
 ```
 
+## Google sign-in
+
+The login screen uses Google Identity Services. The client ID defaults to the
+configured cafeteria client ID; set `VITE_GOOGLE_CLIENT_ID` in the frontend
+environment to override it. The backend must use the matching
+`GOOGLE_CLIENT_ID` value to validate Google credentials. Add each frontend
+origin (for example, `http://localhost:3000`) to the OAuth client's authorized
+JavaScript origins in Google Cloud Console.
+
 # Building For Production
 
 To build this application for production:
