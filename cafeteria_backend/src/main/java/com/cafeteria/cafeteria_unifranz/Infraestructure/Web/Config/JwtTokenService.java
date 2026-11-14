@@ -25,23 +25,26 @@ public class JwtTokenService implements TokenService {
 
     private final SecretKey key;
     private final Duration expiration;
+    private final Duration cashierExpiration;
 
     public JwtTokenService(@Value("${app.jwt.secret}") String secret,
-                           @Value("${app.jwt.expiration-minutes:480}") long expirationMinutes) {
-        // HS256 exige al menos 32 bytes; si el secreto es más corto, falla al iniciar.
+                           @Value("${app.jwt.expiration-minutes:480}") long expirationMinutes,
+                           @Value("${app.jwt.cashier-expiration-days:30}") long cashierExpirationDays) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = Duration.ofMinutes(expirationMinutes);
+        this.cashierExpiration = Duration.ofDays(cashierExpirationDays);
     }
 
     @Override
     public String generate(AuthenticatedUser user) {
         Instant now = Instant.now();
+        Duration tokenExpiration = user.role() == UserRole.CAJERO ? cashierExpiration : expiration;
         return Jwts.builder()
                 .subject(String.valueOf(user.id()))
                 .claim("email", user.email())
                 .claim("role", user.role().name())
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(expiration)))
+                .expiration(Date.from(now.plus(tokenExpiration)))
                 .signWith(key)
                 .compact();
     }

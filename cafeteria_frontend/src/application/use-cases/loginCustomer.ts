@@ -11,3 +11,14 @@ export function createLoginCustomer(
     return session
   }
 }
+
+export function createLoginKiosk(
+  gateway: CafeteriaGateway,
+  sessions: SessionRepository,
+) {
+  return async () => {
+    const session = await gateway.loginKiosk()
+    sessions.save(session)
+    return session
+  }
+}

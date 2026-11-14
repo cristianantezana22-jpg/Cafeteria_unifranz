@@ -17,6 +17,7 @@ import com.cafeteria.cafeteria_unifranz.Domain.NuevoPedido;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteRepository;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoNoEncontradoException;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoRegistrado;
+import com.cafeteria.cafeteria_unifranz.Domain.UserRole;
 import com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence.ProductEntity;
 import com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence.ProductJpaRepository;
 import com.cafeteria.cafeteria_unifranz.application.dto.AuthenticatedUser;
@@ -71,10 +72,11 @@ public class OrderService {
 
         String requestedMethod = request.paymentMethod() == null ? "EFECTIVO" : request.paymentMethod();
         boolean alreadyPaid = "YA_PAGO".equals(requestedMethod);
+        boolean origenPantalla = user != null && user.role() == UserRole.PANTALLA;
         NuevoPedido newOrder = new NuevoPedido(
                 user == null ? null : user.id(),
                 user == null ? null : user.email(),
-                user != null && "PANTALLA".equals(user.role().name()) ? "PANTALLA_TACTIL" : "WEB_MOVIL",
+                origenPantalla ? "PANTALLA_TACTIL" : "WEB_MOVIL",
                 alreadyPaid ? "QR" : requestedMethod,
                 alreadyPaid ? "YA_PAGO" : null,
                 lines);
@@ -95,6 +97,9 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public PedidoEstadoResponse estadoDePedido(Integer pedidoId, AuthenticatedUser user) {
+        if (user == null) {
+            throw new PedidoNoEncontradoException();
+        }
         return pedidos.estadoDe(pedidoId, user.id())
                 .map(estado -> new PedidoEstadoResponse(estado.name()))
                 .orElseThrow(PedidoNoEncontradoException::new);

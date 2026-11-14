@@ -7,6 +7,7 @@ export function CashierOrderCard({
   order,
   isUpdating,
   onAdvance,
+  onDeliverDirect,
   onCancel,
 }: CashierOrderCardProps) {
   const details = getCardDetails(order)
@@ -35,7 +36,7 @@ export function CashierOrderCard({
       </header>
 
       {order.status !== 'CANCELADO' && (
-        <ol className="order-steps">
+        <ol className={`order-steps${details.stepsCompact ? ' order-steps--compact' : ''}`}>
           {details.steps.map((step) => (
             <li
               key={step.status}
@@ -43,6 +44,7 @@ export function CashierOrderCard({
                 'order-steps__item',
                 step.isDone ? 'is-done' : '',
                 step.isCurrent ? 'is-current' : '',
+                step.isSkipped ? 'is-skipped' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -92,7 +94,7 @@ export function CashierOrderCard({
           </p>
         )}
 
-        {details.canAdvance && (
+        {(details.canAdvance || details.canDeliverDirect) && (
           <div className="order-card__actions">
             {details.canCancel && (
               <button
@@ -104,15 +106,28 @@ export function CashierOrderCard({
                 <Icon name="x" size={14} /> Rechazar
               </button>
             )}
-            <button
-              className="order-card__advance"
-              type="button"
-              disabled={isUpdating}
-              onClick={() => onAdvance(order)}
-            >
-              {isUpdating ? 'Actualizando…' : details.actionLabel}
-              <Icon name="arrow-right" size={16} className="icon--inverse" />
-            </button>
+            {details.canAdvance && (
+              <button
+                className="order-card__advance"
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onAdvance(order)}
+              >
+                {isUpdating ? 'Actualizando…' : details.actionLabel}
+                <Icon name="arrow-right" size={16} className="icon--inverse" />
+              </button>
+            )}
+            {details.canDeliverDirect && (
+              <button
+                className="order-card__advance"
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onDeliverDirect(order)}
+              >
+                {isUpdating ? 'Actualizando…' : details.deliverDirectLabel}
+                <Icon name="arrow-right" size={16} className="icon--inverse" />
+              </button>
+            )}
           </div>
         )}
       </footer>

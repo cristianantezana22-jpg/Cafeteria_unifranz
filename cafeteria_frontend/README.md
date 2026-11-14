@@ -2,13 +2,32 @@ Welcome to your new TanStack Start app!
 
 # Getting Started
 
-To run this application:
+## Run the full application locally
 
-```bash
-npm install
+Install Java 21, Node.js, npm, and PostgreSQL. Create a database named
+`cafeteria_unifranz`, then start the backend in PowerShell:
+
+```powershell
+Set-Location cafeteria_backend
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+notepad .env
+.\gradlew.bat bootRun
+```
+
+Set the PostgreSQL username and password in `.env`. This local file is ignored
+by Git, so credentials are not uploaded. The backend creates and updates its
+application tables when it starts.
+
+In a second terminal, start the frontend:
+
+```powershell
+Set-Location cafeteria_frontend
+npm ci
 npm run dev
 ```
 
+The frontend connects to `http://localhost:8080` by default. Set
+`VITE_API_URL` before `npm run dev` if the backend is hosted elsewhere.
 # Building For Production
 
 To build this application for production:

@@ -6,9 +6,6 @@ import {
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-
 import appCss from '../../styles.css?url'
 
 export const Route = createRootRoute({
@@ -19,6 +16,7 @@ export const Route = createRootRoute({
       { title: 'Cafetería Unifranz' },
     ],
     links: [
+      { rel: 'stylesheet', href: appCss },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       {
         rel: 'preconnect',
@@ -29,7 +27,6 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Serif+Display&display=swap',
       },
-      { rel: 'stylesheet', href: appCss },
     ],
   }),
   component: RootComponent,
@@ -48,15 +45,6 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{ position: 'bottom-right' }}
-          plugins={[
-            {
-              name: 'TanStack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Scripts />
       </body>
     </html>

@@ -12,7 +12,7 @@ type PaymentModalProps = {
 
 const paymentMethods: Record<PaymentModalProps['variant'], PaymentMethod[]> = {
   customer: ['QR'],
-  screen: ['QR', 'EFECTIVO'],
+  screen: ['QR'],
 }
 
 export function PaymentModal({ variant, onClose, onConfirm, error }: PaymentModalProps) {

@@ -371,6 +371,14 @@ a {
   font-size: 13px;
 }
 
+.order-confirmation p {
+  margin: 0 0 12px;
+}
+
+.order-confirmation p:last-child {
+  margin: 0;
+}
+
 .checkout-error {
   margin: 0 0 16px;
 }

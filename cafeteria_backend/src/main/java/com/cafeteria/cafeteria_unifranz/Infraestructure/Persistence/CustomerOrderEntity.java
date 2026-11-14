@@ -39,7 +39,7 @@ public class CustomerOrderEntity {
     @Column(name = "monto_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "fecha_creacion", nullable = false)
+    @Column(name = "fecha_creacion")
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

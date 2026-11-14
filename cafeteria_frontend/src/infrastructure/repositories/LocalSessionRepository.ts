@@ -16,6 +16,8 @@ function isCustomerSession(value: unknown): value is CustomerSession {
 
   return (
     typeof value.token === 'string' &&
+    value.token.split('.').length === 3 &&
+    value.token.split('.').every((part) => part.length > 0) &&
     typeof customer.id === 'string' &&
     typeof customer.name === 'string' &&
     typeof customer.email === 'string' &&
@@ -23,7 +25,6 @@ function isCustomerSession(value: unknown): value is CustomerSession {
   )
 }
 
-// En el servidor (SSR) no existe window ni localStorage.
 function getStorage(): Storage | null {
   if (typeof window === 'undefined') return null
   return window.localStorage

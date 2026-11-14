@@ -54,7 +54,7 @@ public class SseNotificadorAdapter implements NotificadorTiempoReal {
         despuesDelCommit(() -> emitir("products-changed", productoId));
     }
 
-    /** Si hay transacción activa espera al commit; si no, emite de inmediato. */
+
     private void despuesDelCommit(Runnable accion) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

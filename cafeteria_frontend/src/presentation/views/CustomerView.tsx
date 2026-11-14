@@ -14,7 +14,8 @@ import {
   logoutCustomer,
   placeCustomerOrder,
 } from '../../infrastructure/api/cafeteria'
-import { STATUS_LABELS } from '../components/CashierOrderCard/CashierOrderCard.logic'
+import { STATUS_LABELS, getStatusSteps } from '../components/CashierOrderCard/CashierOrderCard.logic'
+import '../components/CashierOrderCard/cashier-order-card.css'
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 
 type CartItem = {
@@ -238,11 +239,33 @@ export function CustomerView() {
         </div>
 
         {orderConfirmation && (
-          <p className="order-confirmation" role="status">
-            ¡Pedido confirmado! Código: {orderConfirmation.orderNumber ?? orderConfirmation.id}.
-            Total: Bs {Number(orderConfirmation.total).toFixed(2)}
-            {orderStatus && ` · Estado: ${STATUS_LABELS[orderStatus]}`}
-          </p>
+          <div className="order-confirmation" role="status">
+            <p>
+              ¡Pedido confirmado! Código: {orderConfirmation.orderNumber ?? orderConfirmation.id}.
+              Total: Bs {Number(orderConfirmation.total).toFixed(2)}
+              {orderStatus && ` · Estado: ${STATUS_LABELS[orderStatus]}`}
+            </p>
+            {orderStatus && orderStatus !== 'CANCELADO' && (
+              <ol className="order-steps">
+                {getStatusSteps(orderStatus).map((step) => (
+                  <li
+                    key={step.status}
+                    className={[
+                      'order-steps__item',
+                      step.isDone ? 'is-done' : '',
+                      step.isCurrent ? 'is-current' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    title={step.label}
+                  >
+                    <i />
+                    <span className="order-card__ticket-label">{step.label}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         )}
         {checkoutError && (
           <p className="form-error checkout-error" role="alert">{checkoutError}</p>
