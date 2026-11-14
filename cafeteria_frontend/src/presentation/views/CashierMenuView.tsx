@@ -12,6 +12,7 @@ import {
   updateMenuProduct,
 } from '../../infrastructure/api/cafeteria'
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
+import { ThemeToggle } from '../components/ThemeToggle/ThemeToggle'
 import './cashier-menu-view.css'
 import './cashier-menu-availability.css'
 
@@ -225,6 +226,7 @@ export function CashierMenuView({ onBackToOrders, onLogout }: CashierMenuViewPro
         <header className="cashier-menu-topbar">
           <div className="cashier-menu-breadcrumb">Caja <span>/</span> Gestión del menú</div>
           <div className="cashier-menu-topbar-date">
+            <ThemeToggle />
             <span className="cashier-menu-status-dot" />
             Sistema activo
           </div>

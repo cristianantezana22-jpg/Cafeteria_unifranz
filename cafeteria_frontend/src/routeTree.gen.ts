@@ -15,6 +15,7 @@ import { Route as CajeroRouteImport } from './presentation/routes/cajero'
 import { Route as ClienteRouteImport } from './presentation/routes/cliente'
 import { Route as PantallasRouteImport } from './presentation/routes/pantallas'
 import { Route as RegistroRouteImport } from './presentation/routes/registro'
+import { Route as ReciboTicketCodeRouteImport } from './presentation/routes/recibo.$ticketCode'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const RegistroRoute = RegistroRouteImport.update({
   path: '/registro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReciboTicketCodeRoute = ReciboTicketCodeRouteImport.update({
+  id: '/recibo/$ticketCode',
+  path: '/recibo/$ticketCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
   '/registro': typeof RegistroRoute
+  '/recibo/$ticketCode': typeof ReciboTicketCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
   '/registro': typeof RegistroRoute
+  '/recibo/$ticketCode': typeof ReciboTicketCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/cliente': typeof ClienteRoute
   '/pantallas': typeof PantallasRoute
   '/registro': typeof RegistroRoute
+  '/recibo/$ticketCode': typeof ReciboTicketCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas' | '/registro'
+    | '/'
+    | '/admin'
+    | '/cajero'
+    | '/cliente'
+    | '/pantallas'
+    | '/registro'
+    | '/recibo/$ticketCode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/cajero' | '/cliente' | '/pantallas' | '/registro'
+  to:
+    | '/'
+    | '/admin'
+    | '/cajero'
+    | '/cliente'
+    | '/pantallas'
+    | '/registro'
+    | '/recibo/$ticketCode'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/cliente'
     | '/pantallas'
     | '/registro'
+    | '/recibo/$ticketCode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   ClienteRoute: typeof ClienteRoute
   PantallasRoute: typeof PantallasRoute
   RegistroRoute: typeof RegistroRoute
+  ReciboTicketCodeRoute: typeof ReciboTicketCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recibo/$ticketCode': {
+      id: '/recibo/$ticketCode'
+      path: '/recibo/$ticketCode'
+      fullPath: '/recibo/$ticketCode'
+      preLoaderRoute: typeof ReciboTicketCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClienteRoute: ClienteRoute,
   PantallasRoute: PantallasRoute,
   RegistroRoute: RegistroRoute,
+  ReciboTicketCodeRoute: ReciboTicketCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

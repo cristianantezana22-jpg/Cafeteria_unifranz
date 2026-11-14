@@ -36,8 +36,9 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
 
         jdbc.sql("""
                         INSERT INTO pedidos (id, ticket_numero, usuario_id, bloque_id, origen_pedido,
-                                             estado, monto_total, creado_por)
-                        VALUES (:id, :ticket, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email)
+                                             estado, monto_total, creado_por, fecha_creacion)
+                        VALUES (:id, :ticket, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email,
+                                CURRENT_TIMESTAMP)
                         """)
                 .param("id", id)
                 .param("ticket", ticket)

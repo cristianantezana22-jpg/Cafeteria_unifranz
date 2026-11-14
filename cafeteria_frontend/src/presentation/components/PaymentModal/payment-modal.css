@@ -251,6 +251,41 @@
   transition: box-shadow 160ms ease, transform 160ms ease, opacity 160ms ease;
 }
 
+.payment-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.payment-modal-actions .payment-confirm-button {
+  margin-top: 0;
+}
+
+.payment-cancel-button {
+  min-height: 52px;
+  padding: 12px 18px;
+  border: 1px solid #e8e0e9;
+  border-radius: 14px;
+  color: #322936;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.payment-cancel-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.payment-modal-actions .payment-cancel-button {
+  flex: 0 0 120px;
+}
+
+.payment-modal-actions .payment-confirm-button {
+  flex: 1;
+}
+
 .payment-confirm-button:hover:not(:disabled) {
   box-shadow: 0 13px 27px rgb(166 2 151 / 28%);
   transform: translateY(-1px);

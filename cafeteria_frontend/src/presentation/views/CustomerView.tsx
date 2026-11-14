@@ -188,6 +188,9 @@ export function CustomerView() {
           <p className="eyebrow accent">{today.toLocaleUpperCase('es-BO')}</p>
           <h1>Hola, {session?.customer.name.split(' ')[0] ?? 'Cliente'}.</h1>
           <p className="welcome-copy">Tu próximo favorito está más cerca de lo que crees.</p>
+          <a className="welcome-explore-button" href="#featured-title">
+            Explorar Favoritos <span aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
 

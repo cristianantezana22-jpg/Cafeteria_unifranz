@@ -17,6 +17,7 @@ import com.cafeteria.cafeteria_unifranz.Domain.NuevoPedido;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteRepository;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoNoEncontradoException;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoRegistrado;
+import com.cafeteria.cafeteria_unifranz.Domain.UserRole;
 import com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence.ProductEntity;
 import com.cafeteria.cafeteria_unifranz.Infraestructure.Persistence.ProductJpaRepository;
 import com.cafeteria.cafeteria_unifranz.application.dto.AuthenticatedUser;
@@ -47,10 +48,15 @@ public class OrderService {
 
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request, AuthenticatedUser user) {
-        validateCheckoutOptions(request);
+        CheckoutOptions options = validateCheckoutOptions(request);
 
         Map<Long, Integer> quantities = new LinkedHashMap<>();
         for (CreateOrderItemRequest requestedItem : request.items()) {
+            if (requestedItem == null || requestedItem.quantity() <= 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Cada producto debe tener una cantidad mayor que cero.");
+            }
             quantities.merge(parseProductId(requestedItem.productId()), requestedItem.quantity(), Integer::sum);
         }
 
@@ -69,12 +75,13 @@ public class OrderService {
                     product.getId().intValue(), product.getName(), entry.getValue(), product.getPrice()));
         }
 
-        String requestedMethod = request.paymentMethod() == null ? "EFECTIVO" : request.paymentMethod();
+        String requestedMethod = options.paymentMethod();
         boolean alreadyPaid = "YA_PAGO".equals(requestedMethod);
+        boolean placedAtKiosk = user != null && user.role() == UserRole.PANTALLA;
         NuevoPedido newOrder = new NuevoPedido(
                 user == null ? null : user.id(),
                 user == null ? null : user.email(),
-                user != null && "PANTALLA".equals(user.role().name()) ? "PANTALLA_TACTIL" : "WEB_MOVIL",
+                placedAtKiosk ? "PANTALLA_TACTIL" : "WEB_MOVIL",
                 alreadyPaid ? "QR" : requestedMethod,
                 alreadyPaid ? "YA_PAGO" : null,
                 lines);
@@ -90,7 +97,7 @@ public class OrderService {
         BigDecimal total = newOrder.total();
         return new OrderResponse(
                 saved.id().longValue(), saved.ticket(), user == null ? null : user.id().longValue(),
-                request.serviceMode(), requestedMethod, items, total, LocalDateTime.now());
+                options.serviceMode(), requestedMethod, items, total, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
@@ -100,17 +107,29 @@ public class OrderService {
                 .orElseThrow(PedidoNoEncontradoException::new);
     }
 
-    private void validateCheckoutOptions(CreateOrderRequest request) {
-        if (request.serviceMode() != null && !SERVICE_MODES.contains(request.serviceMode())) {
+    private CheckoutOptions validateCheckoutOptions(CreateOrderRequest request) {
+        if (request == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El pedido es obligatorio.");
+        }
+        if (request.items() == null || request.items().isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El pedido debe incluir al menos un producto.");
+        }
+
+        String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
+        String paymentMethod = request.paymentMethod() == null ? "QR" : request.paymentMethod();
+        if (!SERVICE_MODES.contains(serviceMode)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "La modalidad debe ser COMER_AQUI o LLEVAR.");
         }
-        if (request.paymentMethod() != null && !PAYMENT_METHODS.contains(request.paymentMethod())) {
+        if (!PAYMENT_METHODS.contains(paymentMethod)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "El método de pago no es válido.");
         }
+        return new CheckoutOptions(serviceMode, paymentMethod);
     }
 
     private long parseProductId(String productId) {
@@ -128,5 +147,8 @@ public class OrderService {
         throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "El identificador de producto no es válido.");
+    }
+
+    private record CheckoutOptions(String serviceMode, String paymentMethod) {
     }
 }

@@ -52,6 +52,27 @@
   font-weight: 800;
 }
 
+.ticket-qr {
+  display: grid;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.ticket-qr svg {
+  display: block;
+  max-width: 100%;
+}
+
+.ticket-qr-caption {
+  margin: 14px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .ticket-summary {
   padding: 17px;
   border: 1px dashed #c9cec8;
@@ -67,6 +88,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.ticket-total {
+  margin: 0 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .ticket-summary-heading {
@@ -140,7 +168,7 @@
   border: 0;
   border-radius: 6px;
   color: #fff;
-  background: var(--forest-deep);
+  background: linear-gradient(135deg, #A855F7, #EC4899);
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;

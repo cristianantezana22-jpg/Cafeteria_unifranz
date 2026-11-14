@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CSSProperties, FormEvent } from 'react'
 import { RoleHome } from '../components/RoleHome/RoleHome'
+import { ThemeToggle } from '../components/ThemeToggle/ThemeToggle'
 import jsPDF from 'jspdf'
 // @ts-ignore
 import autoTable from 'jspdf-autotable'
@@ -445,6 +446,7 @@ export function AdminView() {
               <p className="bar-sub">{TITULOS[pestana].sub}</p>
             </div>
             <div className="bar-actions">
+              <ThemeToggle />
               <button className="btn ghost" onClick={() => void cargarDatos()} title="Recargar datos">
                 <span className={cargando ? 'spin' : ''} style={{ display: 'inline-flex' }}>
                   <Icon name="refresh" size={16} />

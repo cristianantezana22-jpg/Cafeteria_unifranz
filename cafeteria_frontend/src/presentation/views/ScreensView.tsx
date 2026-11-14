@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Category } from '../../domain/models/Category'
 import type { CustomerOrder, Product } from '../../domain/models'
-import type { PaymentMethod } from '../../domain/models/Payment'
-import type { ServiceMode } from '../../domain/models/ServiceMode'
+import type { ReceiptData } from '../../application/receipt/receiptData'
 import { CategoryFilter } from '../components/CategoryFilter/CategoryFilter'
 import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { Screensaver } from '../components/Screensaver/Screensaver'
-import { ServiceModeModal } from '../components/ServiceModeModal/ServiceModeModal'
 import { SoldOutBadge } from '../components/SoldOutBadge/SoldOutBadge'
 import { TicketConfirmationModal } from '../components/TicketConfirmationModal/TicketConfirmationModal'
 import { useIdleTimeout } from '../hooks/useIdleTimeout'
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 import {
-  getCurrentSession,
   getCategories,
   getProducts,
   placeCustomerOrder,
@@ -26,22 +23,44 @@ type KioskCartItem = {
 
 type TicketState = {
   order: CustomerOrder
-  serviceMode: ServiceMode
-  paymentMethod: PaymentMethod
+  receipt: ReceiptData
+  qrValue: string
 }
+
+const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 
 function formatPrice(price: number) {
   return `Bs ${Number(price).toFixed(2)}`
 }
 
+function formatReceiptForQr(receipt: ReceiptData) {
+  return [
+    'CAFETERÍA UNIFRANZ',
+    `Ticket: ${receipt.ticketCode}`,
+    `Fecha: ${receipt.date}`,
+    `Hora: ${receipt.time}`,
+    '',
+    'Productos:',
+    ...receipt.items.map(
+      (item) => `${item.quantity} x ${item.name} - ${formatPrice(item.subtotal)}`,
+    ),
+    '',
+    `Total pagado: ${formatPrice(receipt.total)}`,
+  ].join('\n')
+}
+
+function createTicketCode(date: Date) {
+  const month = MONTHS[date.getMonth()]
+  const day = date.getDate().toString().padStart(2, '0')
+  const random = Math.floor(Math.random() * 100) + 1
+  return `${month}${day}${random}`
+}
+
 export function ScreensView() {
-  const session = getCurrentSession()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [cartItems, setCartItems] = useState<KioskCartItem[]>([])
   const [started, setStarted] = useState(false)
-  const [serviceMode, setServiceMode] = useState<ServiceMode | null>(null)
-  const [isServiceModeModalOpen, setIsServiceModeModalOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('all')
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [ticket, setTicket] = useState<TicketState | null>(null)
@@ -83,22 +102,13 @@ export function ScreensView() {
   function resetKiosk() {
     setTicket(null)
     setStarted(false)
-    setServiceMode(null)
-    setIsServiceModeModalOpen(false)
     setIsPaymentModalOpen(false)
     setCartItems([])
     setActiveCategory('all')
     setCheckoutError('')
   }
 
-  useIdleTimeout(resetKiosk, 30_000, started && ticket === null)
-
-  useEffect(() => {
-    if (!ticket) return
-
-    const timeoutId = setTimeout(resetKiosk, 5_000)
-    return () => clearTimeout(timeoutId)
-  }, [ticket])
+  useIdleTimeout(resetKiosk, 10_000, started && !isPaymentModalOpen && ticket === null)
 
   useEffect(() => {
     let isMounted = true
@@ -157,31 +167,44 @@ export function ScreensView() {
     setCartItems((items) => items.filter((item) => item.product.id !== productId))
   }
 
-  async function confirmPayment(method: PaymentMethod) {
+  async function confirmPayment() {
     if (cartItems.length === 0 || isSubmittingOrder) return
-    if (!serviceMode) {
-      setCheckoutError('Elige si tu pedido es para comer aquí o para llevar.')
-      return
-    }
 
     setIsSubmittingOrder(true)
     setCheckoutError('')
     try {
+      const now = new Date()
+      const ticketCode = createTicketCode(now)
+      const receipt: ReceiptData = {
+        ticketCode,
+        date: new Intl.DateTimeFormat('es-BO', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }).format(now),
+        time: new Intl.DateTimeFormat('es-BO', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(now),
+        items: cartItems.map(({ product, quantity }) => ({
+          name: product.name,
+          quantity,
+          unitPrice: Number(product.price),
+          subtotal: Number(product.price) * quantity,
+        })),
+        total: cartTotal,
+      }
       const order = await placeCustomerOrder({
         items: cartItems.map(({ product, quantity }) => ({
           productId: product.id,
           quantity,
         })),
-        serviceMode: serviceMode === 'DINE_IN' ? 'COMER_AQUI' : 'LLEVAR',
-        paymentMethod: method,
+        serviceMode: 'COMER_AQUI',
+        paymentMethod: 'YA_PAGO',
         totalAmount: cartTotal,
       })
-      setTicket({
-        order,
-        serviceMode,
-        paymentMethod: method,
-      })
-      setCartItems([])
+      setTicket({ order, receipt, qrValue: formatReceiptForQr(receipt) })
       setIsPaymentModalOpen(false)
     } catch (error) {
       setCheckoutError(
@@ -201,7 +224,6 @@ export function ScreensView() {
           onStart={() => {
             setCheckoutError('')
             setStarted(true)
-            setIsServiceModeModalOpen(true)
           }}
         />
       )}
@@ -212,21 +234,6 @@ export function ScreensView() {
               <div className="kiosk-brand" aria-label="Cafetería Unifranz">
                 <span className="kiosk-brand-mark" aria-hidden="true">C</span>
                 <span><strong>CAFETERÍA</strong><small>UNIFRANZ</small></span>
-              </div>
-              <div className="kiosk-service-badge">
-                <span aria-hidden="true">
-                  {serviceMode === 'DINE_IN' ? (
-                    <svg viewBox="0 0 24 24" focusable="false">
-                      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" focusable="false">
-                      <path d="M5 8h14l-1.2 12H6.2L5 8Z" />
-                      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-                    </svg>
-                  )}
-                </span>
-                <span>{serviceMode === 'DINE_IN' ? 'Comer aquí' : 'Para llevar'}</span>
               </div>
               <div className="kiosk-order-heading">
                 <div>
@@ -300,12 +307,6 @@ export function ScreensView() {
           <section className="kiosk-menu-panel" aria-labelledby="kiosk-menu-title">
             <header className="kiosk-menu-header">
               <div>
-                <p className="kiosk-overline">
-                  BIENVENIDO
-                  {session?.customer.name
-                    ? `, ${session.customer.name.split(' ')[0].toLocaleUpperCase('es-BO')}`
-                    : ''}
-                </p>
                 <h2 id="kiosk-menu-title">¿Qué se te antoja?</h2>
                 <p>Elige algo rico para disfrutar hoy.</p>
               </div>
@@ -378,8 +379,9 @@ export function ScreensView() {
       {started && isPaymentModalOpen && (
         <PaymentModal
           variant="screen"
+          total={cartTotal}
           onClose={() => {
-            if (!isSubmittingOrder) setIsPaymentModalOpen(false)
+            if (!isSubmittingOrder) resetKiosk()
           }}
           onConfirm={confirmPayment}
           error={checkoutError}
@@ -388,25 +390,11 @@ export function ScreensView() {
 
       {started && ticket && (
         <TicketConfirmationModal
-          orderNumber={ticket.order.orderNumber ?? ticket.order.id}
+          ticketCode={ticket.receipt.ticketCode}
+          qrValue={ticket.qrValue}
           items={ticket.order.items}
-          total={Number(ticket.order.total)}
-          serviceMode={ticket.serviceMode}
-          paymentMethod={ticket.paymentMethod}
+          total={ticket.receipt.total}
           onDone={resetKiosk}
-        />
-      )}
-
-      {isServiceModeModalOpen && (
-        <ServiceModeModal
-          onSelect={(mode) => {
-            setServiceMode(mode)
-            setIsServiceModeModalOpen(false)
-          }}
-          onCancel={() => {
-            setIsServiceModeModalOpen(false)
-            setStarted(false)
-          }}
         />
       )}
     </>
