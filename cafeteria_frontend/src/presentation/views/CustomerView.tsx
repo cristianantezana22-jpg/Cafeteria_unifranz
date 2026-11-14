@@ -34,7 +34,12 @@ export function CustomerView() {
   const [checkoutError, setCheckoutError] = useState('')
   const [orderConfirmation, setOrderConfirmation] = useState<CustomerOrder | null>(null)
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null)
-
+  const today = new Date()
+  const todayLabel = new Intl.DateTimeFormat('es-BO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+  }).format(today).toUpperCase()
   const cartItemCount = cartItems.reduce((count, item) => count + item.quantity, 0)
   const cartTotal = cartItems.reduce(
     (total, item) => total + Number(item.product.price) * item.quantity,
@@ -179,7 +184,7 @@ export function CustomerView() {
 
       <section className="welcome-band">
         <div>
-          <p className="eyebrow accent">{today.toLocaleUpperCase('es-BO')}</p>
+          <p className="eyebrow accent">{todayLabel}</p>
           <h1>Hola, {session?.customer.name.split(' ')[0] ?? 'Cliente'}.</h1>
           <p className="welcome-copy">Tu próximo favorito está más cerca de lo que crees.</p>
           <a className="welcome-explore-button" href="#featured-title">

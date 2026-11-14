@@ -17,6 +17,8 @@ export function TicketConfirmationModal({
   total,
   onDone,
 }: TicketConfirmationModalProps) {
+  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
+
   return (
     <div className="ticket-modal-backdrop">
       <section
