@@ -9,4 +9,6 @@ public interface AuthService {
     LoginResponse login(LoginRequest request);
 
     LoginResponse register(CustomerRegistrationRequest request);
+
+    LoginResponse loginKiosk();
 }

@@ -16,6 +16,8 @@ function isCustomerSession(value: unknown): value is CustomerSession {
 
   return (
     typeof value.token === 'string' &&
+    value.token.split('.').length === 3 &&
+    value.token.split('.').every((part) => part.length > 0) &&
     typeof customer.id === 'string' &&
     typeof customer.name === 'string' &&
     typeof customer.email === 'string' &&

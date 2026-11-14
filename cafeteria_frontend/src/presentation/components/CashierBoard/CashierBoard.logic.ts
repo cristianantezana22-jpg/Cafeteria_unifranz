@@ -142,6 +142,10 @@ export function useCashierBoard() {
     if (order.nextStatus) void changeStatus(order, order.nextStatus)
   }
 
+  function handleDeliverDirect(order: CashierOrder) {
+    void changeStatus(order, 'ENTREGADO')
+  }
+
   function handleCancel(order: CashierOrder) {
     void changeStatus(order, 'CANCELADO')
   }
@@ -176,6 +180,7 @@ export function useCashierBoard() {
     updatingId,
     error,
     handleAdvance,
+    handleDeliverDirect,
     handleCancel,
     handleLogout,
     refresh: () => void loadOrders(),

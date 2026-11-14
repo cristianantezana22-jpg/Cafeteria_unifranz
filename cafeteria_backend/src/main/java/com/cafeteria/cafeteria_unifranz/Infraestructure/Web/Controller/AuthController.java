@@ -31,4 +31,9 @@ public class AuthController {
     public LoginResponse register(@Valid @RequestBody CustomerRegistrationRequest request) {
         return authService.register(request);
     }
+
+    @PostMapping("/kiosk")
+    public LoginResponse kiosk() {
+        return authService.loginKiosk();
+    }
 }

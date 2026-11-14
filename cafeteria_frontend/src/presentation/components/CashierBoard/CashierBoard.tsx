@@ -19,6 +19,7 @@ export function CashierBoard() {
     updatingId,
     error,
     handleAdvance,
+    handleDeliverDirect,
     handleCancel,
     handleLogout,
     refresh,
@@ -112,6 +113,7 @@ export function CashierBoard() {
               order={order}
               isUpdating={updatingId === order.id}
               onAdvance={handleAdvance}
+              onDeliverDirect={handleDeliverDirect}
               onCancel={handleCancel}
             />
           ))}

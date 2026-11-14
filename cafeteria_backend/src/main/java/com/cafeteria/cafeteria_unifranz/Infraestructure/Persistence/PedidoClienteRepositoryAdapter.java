@@ -30,14 +30,15 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
     public PedidoRegistrado registrar(NuevoPedido pedido) {
         Integer id = jdbc.sql("SELECT nextval(pg_get_serial_sequence('pedidos','id'))")
                 .query(Long.class).single().intValue();
-        String ticket = Integer.toString(((id - 1) % 99) + 1);
+        String prefijo = "PANTALLA_TACTIL".equals(pedido.origen()) ? "P" : "C";
+        String ticket = prefijo + id;
         Integer usuarioId = pedido.usuarioId() == null ? clienteMostradorId() : pedido.usuarioId();
         String usuarioEmail = pedido.usuarioEmail() == null ? CLIENTE_MOSTRADOR_EMAIL : pedido.usuarioEmail();
 
         jdbc.sql("""
-                        INSERT INTO pedidos (id, ticket_numero, usuario_id, bloque_id, origen_pedido,
-                                             estado, monto_total, creado_por)
-                        VALUES (:id, :ticket, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email)
+                        INSERT INTO pedidos (id, ticket_numero, numero_pedido, usuario_id, bloque_id, origen_pedido,
+                                             estado, monto_total, creado_por, creado_cuando)
+                        VALUES (:id, :ticket, :ticket, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email, CURRENT_TIMESTAMP)
                         """)
                 .param("id", id)
                 .param("ticket", ticket)

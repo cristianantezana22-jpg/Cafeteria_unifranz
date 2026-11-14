@@ -3,6 +3,7 @@ import { requireRole } from '../auth/routeAuth'
 import { CashierView } from '../views/CashierView'
 
 export const Route = createFileRoute('/cajero')({
+  ssr: false,
   beforeLoad: () => requireRole('CAJERO'),
   component: CashierView,
 })

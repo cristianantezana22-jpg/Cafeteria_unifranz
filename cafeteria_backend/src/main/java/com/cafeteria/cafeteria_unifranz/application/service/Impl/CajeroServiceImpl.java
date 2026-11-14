@@ -54,7 +54,7 @@ public class CajeroServiceImpl implements CajeroService {
         if (!bloque.puedeGestionar(pedido)) {
             throw new PedidoAlmuerzoRestringidoException(bloque.etiqueta());
         }
-        if (!pedido.estado().puedeTransicionarA(nuevoEstado)) {
+        if (!permiteTransicion(pedido, nuevoEstado)) {
             throw new TransicionEstadoInvalidaException(pedido.estado(), nuevoEstado);
         }
 
@@ -72,6 +72,36 @@ public class CajeroServiceImpl implements CajeroService {
                 .orElseThrow(CajeroSinBloqueException::new);
     }
 
+    private boolean esOrigenPantalla(String origen) {
+        return "PANTALLA_TACTIL".equals(origen);
+    }
+
+    private boolean permiteTransicion(PedidoCaja pedido, EstadoPedido nuevoEstado) {
+        if (!esOrigenPantalla(pedido.origen())) {
+            return pedido.estado().puedeTransicionarA(nuevoEstado);
+        }
+        if (nuevoEstado == EstadoPedido.CANCELADO) {
+            return pedido.estado().puedeCancelarse();
+        }
+        return switch (pedido.estado()) {
+            case PENDIENTE -> nuevoEstado == EstadoPedido.EN_PREPARACION
+                    || nuevoEstado == EstadoPedido.ENTREGADO;
+            case EN_PREPARACION, LISTO -> nuevoEstado == EstadoPedido.ENTREGADO;
+            default -> false;
+        };
+    }
+
+    private String siguienteEstadoPara(PedidoCaja pedido) {
+        if (!esOrigenPantalla(pedido.origen())) {
+            return pedido.estado().siguiente().map(EstadoPedido::name).orElse(null);
+        }
+        return switch (pedido.estado()) {
+            case PENDIENTE -> EstadoPedido.EN_PREPARACION.name();
+            case EN_PREPARACION, LISTO -> EstadoPedido.ENTREGADO.name();
+            default -> null;
+        };
+    }
+
     private PedidoCajaResponse toResponse(PedidoCaja pedido, BloqueCaja bloque) {
         return new PedidoCajaResponse(
                 pedido.id(),
@@ -85,7 +115,7 @@ public class CajeroServiceImpl implements CajeroService {
                 pedido.creadoEn(),
                 pedido.almuerzo(),
                 bloque.puedeGestionar(pedido),
-                pedido.estado().siguiente().map(EstadoPedido::name).orElse(null),
+                siguienteEstadoPara(pedido),
                 pedido.estado().puedeCancelarse(),
                 pedido.items().stream()
                         .map(item -> new PedidoCajaResponse.Item(item.nombre(), item.cantidad(), item.subtotal()))
