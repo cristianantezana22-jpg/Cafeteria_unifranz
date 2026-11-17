@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,27 +36,26 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC)
+                                .permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/auth/login", "/api/auth/register", "/api/auth/google").permitAll()
-                        // PERMITE EL ACCESO A TODAS LAS RUTAS DE ADMINISTRADOR (USUARIOS, PRODUCTOS, EMPLEADOS)
-                        .requestMatchers("/api/admin/**").permitAll()
-                        // Sin esto, cualquier error interno (500) se ve como un 401 falso al reenviarse a /error.
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
-                        // Panel de administración: solo con un token de ADMIN.
-                        // Si necesitas desactivarlo temporalmente, cambia hasRole("ADMIN") por permitAll().
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login", "/api/auth/register", "/api/auth/kiosk")
+                                .permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/products", "/api/products/**",
                                 "/api/categories", "/api/categories/**",
                                 "/api/productos", "/api/productos/**",
                                 "/api/categorias", "/api/categorias/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/orders", "/api/orders/**",
                                 "/api/pedidos", "/api/pedidos/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/**", "/api/pedidos/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/stream/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/orders", "/api/orders/**",
+                                "/api/pedidos", "/api/pedidos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/stream/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);

@@ -5,6 +5,7 @@ import type {
   CashierProfile,
   Category,
   CustomerOrder,
+  CustomerOrderTracking,
   CustomerSession,
   MenuCategory,
   MenuProduct,
@@ -18,27 +19,56 @@ import type {
 } from '../../domain/models'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
-).replace(/\/+$/, '')
+function resolveApiBaseUrl() {
+  const configured = import.meta.env.VITE_API_URL
+  if (typeof configured === 'string' && configured.trim() !== '') {
+    return configured.replace(/\/+$/, '')
+  }
+  const hostname =
+    typeof window !== 'undefined' && window.location.hostname
+      ? window.location.hostname
+      : '127.0.0.1'
+  const protocol =
+    typeof window !== 'undefined' && window.location.protocol
+      ? window.location.protocol
+      : 'http:'
+  return `${protocol}//${hostname}:8080`
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 const PRODUCTS_ENDPOINT = '/api/products'
 const CATEGORIES_ENDPOINT = '/api/categories'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 10_000,
+  timeout: 12_000,
 })
 
 const sessions = new LocalSessionRepository()
 
+function isJwtToken(token: string) {
+  return token.split('.').length === 3
+}
+
 api.interceptors.request.use((config) => {
+  config.baseURL = resolveApiBaseUrl()
   const token = sessions.get()?.token
-  if (token) {
+  if (token && isJwtToken(token)) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
   return config
 })
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      sessions.clear()
+    }
+    return Promise.reject(error)
+  },
+)
 
 export class HttpApiError extends Error {
   constructor(
@@ -188,6 +218,19 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
+  async confirmCashPayment(token: string, orderId: number): Promise<CashierOrder> {
+    try {
+      const response = await api.post<CashierOrderResponse>(
+        `/api/cajero/pedidos/${orderId}/confirmar-pago`,
+        {},
+        { headers: bearer(token) },
+      )
+      return mapCashierOrder(response.data)
+    } catch (error) {
+      throw toReadableError(error, 'No se pudo confirmar el pago en efectivo.')
+    }
+  }
+
   async getMenuProducts(token: string): Promise<MenuProduct[]> {
     try {
       const response = await api.get<MenuProductResponse[]>(
@@ -274,7 +317,7 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
       const response = await api.post<OrderResponse>(
         '/api/orders',
         body,
-        token ? { headers: bearer(token) } : undefined,
+        token && isJwtToken(token) ? { headers: bearer(token) } : undefined,
       )
       return mapOrder(response.data)
     } catch (error) {
@@ -299,13 +342,24 @@ export class HttpCafeteriaGateway implements CafeteriaGateway {
     }
   }
 
-  async getCustomerOrderStatus(token: string, orderId: string): Promise<OrderStatus> {
+  async getCustomerOrderStatus(
+    token: string,
+    orderId: string,
+  ): Promise<CustomerOrderTracking> {
     try {
-      const response = await api.get<{ estado: OrderStatus }>(
+      const response = await api.get<{
+        estado: OrderStatus
+        ticket: string | null
+        estadoPago: string | null
+      }>(
         `/api/orders/${orderId}/estado`,
         { headers: bearer(token) },
       )
-      return response.data.estado
+      return {
+        status: response.data.estado,
+        ticket: response.data.ticket,
+        paymentStatus: response.data.estadoPago,
+      }
     } catch (error) {
       throw toReadableError(error, 'No se pudo consultar el estado del pedido.')
     }
@@ -334,7 +388,7 @@ type CashierProfileResponse = {
 
 type CashierOrderResponse = {
   id: number
-  ticket: string
+  ticket: string | null
   estado: OrderStatus
   origen: string
   cliente: string
@@ -382,7 +436,7 @@ type ProductResponse = {
 
 type OrderResponse = {
   id: number
-  orderNumber: string
+  orderNumber: string | null
   customerId: number | null
   items: {
     productId: number
@@ -406,7 +460,7 @@ function mapSession(response: AuthResponse): CustomerSession {
 function mapCashierOrder(order: CashierOrderResponse): CashierOrder {
   return {
     id: order.id,
-    ticket: order.ticket,
+    ticket: order.ticket ?? 'Por asignar',
     status: order.estado,
     origin: order.origen,
     customerName: order.cliente,
@@ -465,7 +519,7 @@ function mapProduct(product: ProductResponse): Product {
 function mapOrder(order: OrderResponse): CustomerOrder {
   return {
     id: String(order.id),
-    orderNumber: order.orderNumber,
+    orderNumber: order.orderNumber ?? undefined,
     customerId: order.customerId === null ? '' : String(order.customerId),
     items: order.items.map((item) => ({
       productId: String(item.productId),

@@ -117,6 +117,7 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
             <p>Escanea el código QR con la aplicación de tu banco.</p>
           </div>
         )}
+<<<<<<< HEAD
         <div className={variant === 'screen' ? 'payment-modal-actions' : undefined}>
           {variant === 'screen' && (
             <button
@@ -140,6 +141,23 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
             {!isConfirming && variant === 'customer' && <span aria-hidden="true">→</span>}
           </button>
         </div>
+=======
+        <button
+          className="payment-confirm-button"
+          type="button"
+          onClick={() =>
+            void handleConfirm(selectedMethod === 'QR' ? 'YA_PAGO' : selectedMethod)
+          }
+          disabled={isConfirming}
+        >
+          {isConfirming
+            ? 'Procesando pedido…'
+            : selectedMethod === 'EFECTIVO'
+              ? 'Pedir en efectivo'
+              : 'Ya pagué'}
+          {!isConfirming && <span aria-hidden="true">→</span>}
+        </button>
+>>>>>>> alan
       </section>
     </div>
   )

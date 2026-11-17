@@ -6,5 +6,5 @@ public interface PedidoClienteRepository {
 
     PedidoRegistrado registrar(NuevoPedido pedido);
 
-    Optional<EstadoPedido> estadoDe(Integer pedidoId, Integer usuarioId);
+    Optional<PedidoClienteEstado> estadoDe(Integer pedidoId, Integer usuarioId);
 }

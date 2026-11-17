@@ -4,6 +4,7 @@ import { createGetCashierProfile } from '../../application/use-cases/getCashierP
 import {
   createLoginCustomer,
   createLoginWithGoogle,
+  createLoginKiosk,
 } from '../../application/use-cases/loginCustomer'
 import { createPlaceCustomerOrder } from '../../application/use-cases/placeCustomerOrder'
 import { createRegisterCustomer } from '../../application/use-cases/registerCustomer'
@@ -12,6 +13,7 @@ import { HttpCafeteriaGateway } from './HttpCafeteriaGateway'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 import type { CustomerSession, MenuProductRequest } from '../../domain/models'
 import { createGetCustomerOrderStatus } from '../../application/use-cases/getCustomerOrderStatus'
+import { createConfirmCashPayment } from '../../application/use-cases/confirmCashPayment'
 import { createSetProductAvailability } from '../../application/use-cases/setProductAvailability'
 import { createSubscribeToRealtime } from '../../application/use-cases/subscribeToRealtime'
 import { SseRealtimeGateway } from './SseRealtimeGateway'
@@ -21,6 +23,7 @@ const sessions = new LocalSessionRepository()
 
 export const loginCustomer = createLoginCustomer(gateway, sessions)
 export const loginWithGoogle = createLoginWithGoogle(gateway, sessions)
+export const loginKiosk = createLoginKiosk(gateway, sessions)
 export const registerCustomer = createRegisterCustomer(gateway, sessions)
 export const getFeaturedProducts = createGetFeaturedProducts(gateway, sessions)
 export const getCashierOrders = createGetCashierOrders(gateway, sessions)
@@ -29,6 +32,7 @@ export const updateCashierOrderStatus = createUpdateCashierOrderStatus(
   gateway,
   sessions,
 )
+export const confirmCashPayment = createConfirmCashPayment(gateway, sessions)
 export const setProductAvailability = createSetProductAvailability(gateway, sessions)
 export const getCustomerOrderStatus = createGetCustomerOrderStatus(gateway, sessions)
 export const subscribeToRealtime = createSubscribeToRealtime(new SseRealtimeGateway())

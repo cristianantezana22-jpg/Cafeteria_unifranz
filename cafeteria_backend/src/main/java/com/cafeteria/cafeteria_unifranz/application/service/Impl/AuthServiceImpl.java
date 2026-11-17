@@ -146,6 +146,21 @@ public class AuthServiceImpl implements AuthService {
         return createLoginResponse(usuario, UserRole.CLIENTE);
     }
 
+    @Override
+    @Transactional
+    public LoginResponse loginKiosk() {
+        String email = "pantalla@cafeteria.local";
+        Usuario usuario = usuarioRepository.findActiveByEmail(email).orElseGet(() ->
+                usuarioRepository.save(new Usuario(
+                        null,
+                        "Pantalla de pedidos",
+                        email,
+                        passwordEncoder.encode("pantalla"),
+                        UserRole.PANTALLA.name())));
+        UserRole role = UserRole.fromDatabaseValue(usuario.rol()).orElse(UserRole.PANTALLA);
+        return createLoginResponse(usuario, role == UserRole.PANTALLA ? role : UserRole.PANTALLA);
+    }
+
     private LoginResponse createLoginResponse(Usuario usuario, UserRole role) {
         String token = tokenService.generate(
                 new AuthenticatedUser(usuario.id(), usuario.email(), role));

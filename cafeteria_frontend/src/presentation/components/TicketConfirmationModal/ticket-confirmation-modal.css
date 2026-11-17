@@ -41,6 +41,11 @@
   stroke-width: 2;
 }
 
+.ticket-success-icon.is-pending {
+  color: #9a6a20;
+  background: #fff3d8;
+}
+
 .ticket-modal h2 {
   font-size: clamp(27px, 5vw, 34px);
 }
@@ -52,6 +57,7 @@
   font-weight: 800;
 }
 
+<<<<<<< HEAD
 .ticket-qr {
   display: grid;
   width: fit-content;
@@ -71,6 +77,13 @@
   color: var(--muted);
   font-size: 13px;
   font-weight: 600;
+=======
+.ticket-current-status {
+  margin: -12px 0 20px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+>>>>>>> alan
 }
 
 .ticket-summary {
@@ -185,5 +198,10 @@
 
   .ticket-summary {
     padding: 13px;
+  }
+
+  .ticket-order-number {
+    overflow-wrap: anywhere;
+    font-size: 20px;
   }
 }

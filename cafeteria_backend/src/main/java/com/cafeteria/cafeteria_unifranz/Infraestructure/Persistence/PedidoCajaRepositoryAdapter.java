@@ -107,6 +107,42 @@ public class PedidoCajaRepositoryAdapter implements PedidoCajaRepository {
     }
 
     @Override
+    public boolean confirmarPagoEfectivo(Integer pedidoId, String usuarioEmail) {
+        int pagosActualizados = jdbc.sql("""
+                        UPDATE pagos
+                        SET estado_pago = 'COMPLETADO', fecha_pago = CURRENT_TIMESTAMP
+                        WHERE pedido_id = :id
+                          AND metodo_pago = 'EFECTIVO'
+                          AND estado_pago = 'PENDIENTE'
+                          AND EXISTS (
+                              SELECT 1 FROM pedidos
+                              WHERE id = :id
+                                AND origen_pedido = 'PANTALLA_TACTIL'
+                                AND estado = 'PENDIENTE'
+                                AND ticket_numero IS NULL
+                          )
+                        """)
+                .param("id", pedidoId)
+                .update();
+        if (pagosActualizados != 1) {
+            return false;
+        }
+
+        jdbc.sql("""
+                        UPDATE pedidos
+                        SET ticket_numero = 'PE' || id::text,
+                            numero_pedido = 'PE' || id::text,
+                            modificado_cuando = CURRENT_TIMESTAMP,
+                            modificado_por = :email
+                        WHERE id = :id
+                        """)
+                .param("email", usuarioEmail)
+                .param("id", pedidoId)
+                .update();
+        return true;
+    }
+
+    @Override
     public Optional<Integer> bloqueDeCajero(Integer usuarioId) {
         return jdbc.sql("SELECT bloque_id FROM usuarios WHERE id = :id AND rol = 'CAJERO' AND eliminado_cuando IS NULL")
                 .param("id", usuarioId)

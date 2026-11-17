@@ -7,6 +7,7 @@ public record NuevoPedido(
         Integer usuarioId,
         String usuarioEmail,
         String origen,
+        String modalidadServicio,
         String metodoPago,
         String referenciaPago,
         List<Linea> lineas) {

@@ -4,6 +4,7 @@ import { AdminView } from '../views/AdminView'
 import { ThemeProvider } from '../theme/ThemeContext'
 
 export const Route = createFileRoute('/admin')({
+  ssr: false,
   beforeLoad: () => requireRole('ADMIN'),
   component: ThemedAdminView,
 })

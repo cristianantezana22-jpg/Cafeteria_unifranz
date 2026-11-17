@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.cafeteria.cafeteria_unifranz.Domain.EstadoPedido;
 import com.cafeteria.cafeteria_unifranz.Domain.NuevoPedido;
+import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteEstado;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteRepository;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoRegistrado;
 
@@ -28,34 +29,50 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
 
     @Override
     public PedidoRegistrado registrar(NuevoPedido pedido) {
-        Integer id = jdbc.sql("SELECT nextval(pg_get_serial_sequence('pedidos','id'))")
-                .query(Long.class).single().intValue();
-        String ticket = Integer.toString(((id - 1) % 99) + 1);
         Integer usuarioId = pedido.usuarioId() == null ? clienteMostradorId() : pedido.usuarioId();
         String usuarioEmail = pedido.usuarioEmail() == null ? CLIENTE_MOSTRADOR_EMAIL : pedido.usuarioEmail();
 
-        jdbc.sql("""
-                        INSERT INTO pedidos (id, ticket_numero, usuario_id, bloque_id, origen_pedido,
-                                             estado, monto_total, creado_por, fecha_creacion)
-                        VALUES (:id, :ticket, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email,
-                                CURRENT_TIMESTAMP)
+        Integer id = jdbc.sql("""
+                        INSERT INTO pedidos (id, ticket_numero, numero_pedido, usuario_id, cliente_id, bloque_id,
+                                             origen_pedido, modalidad_servicio, metodo_pago, estado_pago,
+                                             estado, monto_total, creado_por, creado_cuando, fecha_creacion)
+                        VALUES (DEFAULT, NULL, NULL, :usuario, :usuario, :bloque, :origen, :modalidad, :metodo,
+                                :estadoPago, 'PENDIENTE', :total, :email, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        RETURNING id
                         """)
-                .param("id", id)
-                .param("ticket", ticket)
-                        .param("usuario", usuarioId)
+                .param("usuario", usuarioId)
                 .param("bloque", BLOQUE_POR_DEFECTO)
                 .param("origen", pedido.origen())
+                .param("modalidad", pedido.modalidadServicio())
+                .param("metodo", pedido.metodoPago())
+                .param("estadoPago", "QR".equals(pedido.metodoPago()) ? "COMPLETADO" : "PENDIENTE")
                 .param("total", pedido.total())
-                        .param("email", usuarioEmail)
-                .update();
+                .param("email", usuarioEmail)
+                .query(Long.class)
+                .single()
+                .intValue();
+
+        String ticket = generarTicket(pedido, id);
+        if (ticket != null) {
+            jdbc.sql("""
+                            UPDATE pedidos
+                            SET ticket_numero = :ticket, numero_pedido = :ticket
+                            WHERE id = :id
+                            """)
+                    .param("ticket", ticket)
+                    .param("id", id)
+                    .update();
+        }
 
         for (NuevoPedido.Linea linea : pedido.lineas()) {
             jdbc.sql("""
-                            INSERT INTO detalle_pedidos (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
-                            VALUES (:pedido, :producto, :cantidad, :precio, :subtotal)
+                            INSERT INTO detalle_pedidos
+                                (pedido_id, producto_id, nombre_producto, cantidad, precio_unitario, subtotal)
+                            VALUES (:pedido, :producto, :nombre, :cantidad, :precio, :subtotal)
                             """)
                     .param("pedido", id)
                     .param("producto", linea.productoId())
+                    .param("nombre", linea.nombre())
                     .param("cantidad", linea.cantidad())
                     .param("precio", linea.precioUnitario())
                     .param("subtotal", linea.subtotal())
@@ -64,13 +81,19 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
 
         jdbc.sql("""
                         INSERT INTO pagos (pedido_id, metodo_pago, estado_pago, referencia_transaccion, monto)
-                        VALUES (:pedido, :metodo, 'PENDIENTE', :referencia, :monto)
+                        VALUES (:pedido, :metodo, :estado, :referencia, :monto)
                         """)
                 .param("pedido", id)
                 .param("metodo", pedido.metodoPago())
+                .param("estado", "QR".equals(pedido.metodoPago()) ? "COMPLETADO" : "PENDIENTE")
                 .param("referencia", pedido.referenciaPago())
                 .param("monto", pedido.total())
                 .update();
+        if ("QR".equals(pedido.metodoPago())) {
+            jdbc.sql("UPDATE pagos SET fecha_pago = CURRENT_TIMESTAMP WHERE pedido_id = :id")
+                    .param("id", id)
+                    .update();
+        }
 
         return new PedidoRegistrado(id, ticket);
     }
@@ -104,15 +127,30 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
     }
 
     @Override
-    public Optional<EstadoPedido> estadoDe(Integer pedidoId, Integer usuarioId) {
+    public Optional<PedidoClienteEstado> estadoDe(Integer pedidoId, Integer usuarioId) {
         return jdbc.sql("""
-                        SELECT estado FROM pedidos
-                        WHERE id = :id AND usuario_id = :usuario AND eliminado_cuando IS NULL
+                        SELECT p.estado, p.ticket_numero, pg.estado_pago
+                        FROM pedidos p
+                        LEFT JOIN pagos pg ON pg.pedido_id = p.id
+                        WHERE p.id = :id AND p.usuario_id = :usuario AND p.eliminado_cuando IS NULL
                         """)
                 .param("id", pedidoId)
                 .param("usuario", usuarioId)
-                .query(String.class)
-                .optional()
-                .flatMap(EstadoPedido::fromDatabaseValue);
+                .query((rs, rowNum) -> new PedidoClienteEstado(
+                        EstadoPedido.valueOf(rs.getString("estado")),
+                        rs.getString("ticket_numero"),
+                        rs.getString("estado_pago")))
+                .optional();
+    }
+
+    private String generarTicket(NuevoPedido pedido, Integer id) {
+        if ("PANTALLA_TACTIL".equals(pedido.origen()) && "EFECTIVO".equals(pedido.metodoPago())) {
+            return null;
+        }
+        String prefijo = "PANTALLA_TACTIL".equals(pedido.origen()) ? "PQ" : "CQ";
+        if ("PANTALLA_TACTIL".equals(pedido.origen()) && !"QR".equals(pedido.metodoPago())) {
+            return null;
+        }
+        return prefijo + id;
     }
 }

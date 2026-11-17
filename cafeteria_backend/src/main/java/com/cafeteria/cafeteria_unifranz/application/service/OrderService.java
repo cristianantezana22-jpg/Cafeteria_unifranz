@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.cafeteria.cafeteria_unifranz.Domain.NuevoPedido;
+import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteEstado;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoClienteRepository;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoNoEncontradoException;
 import com.cafeteria.cafeteria_unifranz.Domain.PedidoRegistrado;
@@ -31,7 +32,7 @@ import com.cafeteria.cafeteria_unifranz.application.dto.PedidoEstadoResponse;
 public class OrderService {
 
     private static final Set<String> SERVICE_MODES = Set.of("COMER_AQUI", "LLEVAR");
-    private static final Set<String> PAYMENT_METHODS = Set.of("QR", "EFECTIVO", "TARJETA", "YA_PAGO");
+    private static final Set<String> PAYMENT_METHODS = Set.of("QR", "EFECTIVO", "YA_PAGO");
 
     private final ProductJpaRepository products;
     private final PedidoClienteRepository pedidos;
@@ -83,6 +84,25 @@ public class OrderService {
                 user == null ? null : user.email(),
                 placedAtKiosk ? "PANTALLA_TACTIL" : "WEB_MOVIL",
                 alreadyPaid ? "QR" : requestedMethod,
+        boolean origenPantalla = user != null && user.role() == UserRole.PANTALLA;
+        String paymentMethod = alreadyPaid ? "QR" : requestedMethod;
+        if (origenPantalla && !Set.of("QR", "EFECTIVO").contains(paymentMethod)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Las pantallas solo admiten pago QR o en efectivo.");
+        }
+        if (!origenPantalla && !"QR".equals(paymentMethod)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Los pedidos de clientes solo admiten pago QR.");
+        }
+        String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
+        NuevoPedido newOrder = new NuevoPedido(
+                user == null ? null : user.id(),
+                user == null ? null : user.email(),
+                origenPantalla ? "PANTALLA_TACTIL" : "WEB_MOVIL",
+                serviceMode,
+                paymentMethod,
                 alreadyPaid ? "YA_PAGO" : null,
                 lines);
 
@@ -98,12 +118,16 @@ public class OrderService {
         return new OrderResponse(
                 saved.id().longValue(), saved.ticket(), user == null ? null : user.id().longValue(),
                 options.serviceMode(), requestedMethod, items, total, LocalDateTime.now());
+                serviceMode, requestedMethod, items, total, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
     public PedidoEstadoResponse estadoDePedido(Integer pedidoId, AuthenticatedUser user) {
+        if (user == null) {
+            throw new PedidoNoEncontradoException();
+        }
         return pedidos.estadoDe(pedidoId, user.id())
-                .map(estado -> new PedidoEstadoResponse(estado.name()))
+                .map(this::toOrderStatus)
                 .orElseThrow(PedidoNoEncontradoException::new);
     }
 
@@ -120,6 +144,12 @@ public class OrderService {
         String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
         String paymentMethod = request.paymentMethod() == null ? "QR" : request.paymentMethod();
         if (!SERVICE_MODES.contains(serviceMode)) {
+    private PedidoEstadoResponse toOrderStatus(PedidoClienteEstado estado) {
+        return new PedidoEstadoResponse(estado.estado().name(), estado.ticket(), estado.estadoPago());
+    }
+
+    private void validateCheckoutOptions(CreateOrderRequest request) {
+        if (request.serviceMode() != null && !SERVICE_MODES.contains(request.serviceMode())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "La modalidad debe ser COMER_AQUI o LLEVAR.");

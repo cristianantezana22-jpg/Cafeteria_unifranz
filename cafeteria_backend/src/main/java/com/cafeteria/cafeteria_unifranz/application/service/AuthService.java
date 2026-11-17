@@ -12,4 +12,6 @@ public interface AuthService {
     LoginResponse loginWithGoogle(GoogleLoginRequest request);
 
     LoginResponse register(CustomerRegistrationRequest request);
+
+    LoginResponse loginKiosk();
 }

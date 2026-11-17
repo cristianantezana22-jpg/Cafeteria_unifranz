@@ -10,6 +10,7 @@ import {
   getCashierOrders,
   getCashierProfile,
   logoutCashier,
+  confirmCashPayment as confirmCashPaymentRequest,
   updateCashierOrderStatus,
 } from '../../../infrastructure/api/cafeteria'
 import { useRealtimeEvents } from '../../hooks/useRealtimeEvents'
@@ -142,6 +143,35 @@ export function useCashierBoard() {
     if (order.nextStatus) void changeStatus(order, order.nextStatus)
   }
 
+  async function handleConfirmCashPayment(order: CashierOrder) {
+    setUpdatingId(order.id)
+    setError('')
+    try {
+      const updated = await confirmCashPaymentRequest(order.id)
+      setOrders((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      )
+    } catch (confirmationError) {
+      if (isSessionExpired(confirmationError)) {
+        logoutCashier()
+        void navigate({ to: '/' })
+        return
+      }
+      setError(
+        confirmationError instanceof Error
+          ? confirmationError.message
+          : 'No se pudo confirmar el pago en efectivo.',
+      )
+      await loadOrders()
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  function handleDeliverDirect(order: CashierOrder) {
+    void changeStatus(order, 'ENTREGADO')
+  }
+
   function handleCancel(order: CashierOrder) {
     void changeStatus(order, 'CANCELADO')
   }
@@ -176,6 +206,8 @@ export function useCashierBoard() {
     updatingId,
     error,
     handleAdvance,
+    handleConfirmCashPayment,
+    handleDeliverDirect,
     handleCancel,
     handleLogout,
     refresh: () => void loadOrders(),

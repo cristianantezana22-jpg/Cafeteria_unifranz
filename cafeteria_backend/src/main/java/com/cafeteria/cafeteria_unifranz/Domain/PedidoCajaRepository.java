@@ -11,5 +11,7 @@ public interface PedidoCajaRepository {
 
     void cambiarEstado(Integer pedidoId, EstadoPedido anterior, EstadoPedido nuevo, Integer usuarioId, String usuarioEmail);
 
+    boolean confirmarPagoEfectivo(Integer pedidoId, String usuarioEmail);
+
     Optional<Integer> bloqueDeCajero(Integer usuarioId);
 }

@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
@@ -8,8 +7,15 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  server: {
+    host: true,
+    port: 3000,
+  },
+  preview: {
+    host: true,
+    port: 3000,
+  },
   plugins: [
-    devtools(),
     tailwindcss(),
     tanstackStart({
       router: {

@@ -472,6 +472,95 @@ a {
   font-size: 13px;
 }
 
+.order-confirmation p {
+  margin: 0 0 12px;
+}
+
+.order-confirmation p:last-child {
+  margin: 0;
+}
+
+.customer-order-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.customer-order-layout.is-confirmed {
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+}
+
+.customer-order-tracking {
+  display: grid;
+  gap: 13px;
+  padding: 22px;
+  border: 1px solid #ecd8ea;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #fcf4fb);
+  box-shadow: 0 12px 30px rgb(75 29 70 / 7%);
+}
+
+.customer-order-tracking .eyebrow {
+  font-size: 9px;
+}
+
+.customer-ticket-label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.customer-ticket-number {
+  color: var(--forest);
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.customer-order-status {
+  display: grid;
+  gap: 5px;
+  padding: 13px 0;
+  border-top: 1px solid #eee3ed;
+  border-bottom: 1px solid #eee3ed;
+}
+
+.customer-order-status span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.customer-order-status strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.customer-order-tracking .order-steps {
+  gap: 8px;
+}
+
+.customer-order-tracking .order-steps__item .order-card__ticket-label {
+  font-size: 8px;
+}
+
+.customer-order-content {
+  min-width: 0;
+}
+
+.customer-order-content > .order-confirmation {
+  margin-bottom: 18px;
+  border-radius: 12px;
+}
+
+.customer-order-content .order-confirmation strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
 .checkout-error {
   margin: 0 0 16px;
 }
@@ -525,6 +614,8 @@ a {
   .welcome-stamp strong { font-size: 21px; }
   .featured-section { padding: 42px 22px 56px; }
   .cart-section { padding: 0 22px 56px; }
+  .customer-order-layout.is-confirmed { grid-template-columns: minmax(0, 1fr); }
+  .customer-order-tracking { padding: 18px; }
   .section-heading h2 { font-size: 28px; }
   .product-count { font-size: 8px; }
   .product-grid { gap: 24px 13px; }

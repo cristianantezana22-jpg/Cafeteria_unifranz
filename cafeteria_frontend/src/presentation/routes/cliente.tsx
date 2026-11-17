@@ -4,6 +4,7 @@ import { requireRole } from '../auth/routeAuth'
 import { ThemeProvider } from '../theme/ThemeContext'
 
 export const Route = createFileRoute('/cliente')({
+  ssr: false,
   beforeLoad: () => requireRole('CLIENTE'),
   component: ThemedCustomerView,
 })

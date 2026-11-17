@@ -4,6 +4,7 @@ import { CashierView } from '../views/CashierView'
 import { ThemeProvider } from '../theme/ThemeContext'
 
 export const Route = createFileRoute('/cajero')({
+  ssr: false,
   beforeLoad: () => requireRole('CAJERO'),
   component: ThemedCashierView,
 })

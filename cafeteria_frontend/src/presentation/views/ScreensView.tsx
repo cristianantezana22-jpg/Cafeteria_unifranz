@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import type { Category } from '../../domain/models/Category'
 import type { CustomerOrder, Product } from '../../domain/models'
 import type { ReceiptData } from '../../application/receipt/receiptData'
+import type { OrderStatus } from '../../domain/models'
+import type { PaymentMethod } from '../../domain/models/Payment'
+import type { ServiceMode } from '../../domain/models/ServiceMode'
 import { CategoryFilter } from '../components/CategoryFilter/CategoryFilter'
 import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { Screensaver } from '../components/Screensaver/Screensaver'
@@ -11,6 +14,7 @@ import { useIdleTimeout } from '../hooks/useIdleTimeout'
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 import {
   getCategories,
+  getCustomerOrderStatus,
   getProducts,
   placeCustomerOrder,
 } from '../../infrastructure/api/cafeteria'
@@ -25,6 +29,9 @@ type TicketState = {
   order: CustomerOrder
   receipt: ReceiptData
   qrValue: string
+  serviceMode: ServiceMode
+  paymentMethod: PaymentMethod
+  orderStatus: OrderStatus
 }
 
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
@@ -109,6 +116,44 @@ export function ScreensView() {
   }
 
   useIdleTimeout(resetKiosk, 10_000, started && !isPaymentModalOpen && ticket === null)
+  useIdleTimeout(resetKiosk, 30_000, started && ticket === null)
+
+  useEffect(() => {
+    if (!ticket?.order.orderNumber) return
+
+    const timeoutId = setTimeout(resetKiosk, 5_000)
+    return () => clearTimeout(timeoutId)
+  }, [ticket?.order.orderNumber])
+
+  useEffect(() => {
+    if (!ticket || ticket.paymentMethod !== 'EFECTIVO' || ticket.order.orderNumber) return
+    const orderId = ticket.order.id
+    let active = true
+    const updateTicket = () => {
+      getCustomerOrderStatus(orderId)
+        .then((tracking) => {
+          if (!active) return
+          setTicket((current) =>
+            current?.order.id !== orderId ||
+            (current.order.orderNumber === (tracking.ticket ?? undefined) &&
+              current.orderStatus === tracking.status)
+              ? current
+              : {
+                  ...current,
+                  order: { ...current.order, orderNumber: tracking.ticket ?? undefined },
+                  orderStatus: tracking.status,
+                },
+          )
+        })
+        .catch(() => {})
+    }
+    void updateTicket()
+    const intervalId = window.setInterval(updateTicket, 3_000)
+    return () => {
+      active = false
+      window.clearInterval(intervalId)
+    }
+  }, [ticket])
 
   useEffect(() => {
     let isMounted = true
@@ -205,6 +250,13 @@ export function ScreensView() {
         totalAmount: cartTotal,
       })
       setTicket({ order, receipt, qrValue: formatReceiptForQr(receipt) })
+      setTicket({
+        order,
+        serviceMode,
+        paymentMethod: method,
+        orderStatus: 'PENDIENTE',
+      })
+      setCartItems([])
       setIsPaymentModalOpen(false)
     } catch (error) {
       setCheckoutError(
@@ -395,6 +447,13 @@ export function ScreensView() {
           qrValue={ticket.qrValue}
           items={ticket.order.items}
           total={ticket.receipt.total}
+          orderNumber={ticket.order.orderNumber ?? ticket.order.id}
+          orderStatus={ticket.orderStatus}
+          items={ticket.order.items}
+          total={Number(ticket.order.total)}
+          serviceMode={ticket.serviceMode}
+          paymentMethod={ticket.paymentMethod}
+          isAwaitingPayment={ticket.paymentMethod === 'EFECTIVO' && !ticket.order.orderNumber}
           onDone={resetKiosk}
         />
       )}

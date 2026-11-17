@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.cafeteria.cafeteria_unifranz.Domain.BloqueCaja;
 import com.cafeteria.cafeteria_unifranz.Domain.CajeroSinBloqueException;
@@ -54,7 +56,7 @@ public class CajeroServiceImpl implements CajeroService {
         if (!bloque.puedeGestionar(pedido)) {
             throw new PedidoAlmuerzoRestringidoException(bloque.etiqueta());
         }
-        if (!pedido.estado().puedeTransicionarA(nuevoEstado)) {
+        if (!permiteTransicion(pedido, nuevoEstado)) {
             throw new TransicionEstadoInvalidaException(pedido.estado(), nuevoEstado);
         }
 
@@ -66,10 +68,80 @@ public class CajeroServiceImpl implements CajeroService {
         return toResponse(actualizado, bloque);
     }
 
+    @Override
+    @Transactional
+    public PedidoCajaResponse confirmarPagoEfectivo(AuthenticatedUser cajero, Integer pedidoId) {
+        BloqueCaja bloque = resolverBloque(cajero);
+        PedidoCaja pedido = pedidoRepository.buscarPorId(pedidoId)
+                .orElseThrow(PedidoNoEncontradoException::new);
+        if (!bloque.puedeGestionar(pedido)) {
+            throw new PedidoAlmuerzoRestringidoException(bloque.etiqueta());
+        }
+        if (!esOrigenPantalla(pedido.origen())
+                || !"EFECTIVO".equals(pedido.metodoPago())
+                || !"PENDIENTE".equals(pedido.estadoPago())
+                || pedido.estado() != EstadoPedido.PENDIENTE) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Este pedido no tiene un pago en efectivo pendiente de confirmación.");
+        }
+        if (!pedidoRepository.confirmarPagoEfectivo(pedidoId, cajero.email())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "El pago ya fue confirmado o el pedido ya no está disponible.");
+        }
+        notificador.pedidosActualizados(pedidoId);
+        PedidoCaja actualizado = pedidoRepository.buscarPorId(pedidoId)
+                .orElseThrow(PedidoNoEncontradoException::new);
+        return toResponse(actualizado, bloque);
+    }
+
     private BloqueCaja resolverBloque(AuthenticatedUser cajero) {
         return pedidoRepository.bloqueDeCajero(cajero.id())
                 .flatMap(BloqueCaja::deId)
                 .orElseThrow(CajeroSinBloqueException::new);
+    }
+
+    private boolean esOrigenPantalla(String origen) {
+        return "PANTALLA_TACTIL".equals(origen);
+    }
+
+    private boolean permiteTransicion(PedidoCaja pedido, EstadoPedido nuevoEstado) {
+        if (esPagoEfectivoPendiente(pedido) && nuevoEstado != EstadoPedido.CANCELADO) {
+            return false;
+        }
+        if (!esOrigenPantalla(pedido.origen())) {
+            return pedido.estado().puedeTransicionarA(nuevoEstado);
+        }
+        if (nuevoEstado == EstadoPedido.CANCELADO) {
+            return pedido.estado().puedeCancelarse();
+        }
+        return switch (pedido.estado()) {
+            case PENDIENTE -> nuevoEstado == EstadoPedido.EN_PREPARACION
+                    || nuevoEstado == EstadoPedido.ENTREGADO;
+            case EN_PREPARACION, LISTO -> nuevoEstado == EstadoPedido.ENTREGADO;
+            default -> false;
+        };
+    }
+
+    private String siguienteEstadoPara(PedidoCaja pedido) {
+        if (esPagoEfectivoPendiente(pedido)) {
+            return null;
+        }
+        if (!esOrigenPantalla(pedido.origen())) {
+            return pedido.estado().siguiente().map(EstadoPedido::name).orElse(null);
+        }
+        return switch (pedido.estado()) {
+            case PENDIENTE -> EstadoPedido.EN_PREPARACION.name();
+            case EN_PREPARACION, LISTO -> EstadoPedido.ENTREGADO.name();
+            default -> null;
+        };
+    }
+
+    private boolean esPagoEfectivoPendiente(PedidoCaja pedido) {
+        return esOrigenPantalla(pedido.origen())
+                && "EFECTIVO".equals(pedido.metodoPago())
+                && "PENDIENTE".equals(pedido.estadoPago());
     }
 
     private PedidoCajaResponse toResponse(PedidoCaja pedido, BloqueCaja bloque) {
@@ -85,7 +157,7 @@ public class CajeroServiceImpl implements CajeroService {
                 pedido.creadoEn(),
                 pedido.almuerzo(),
                 bloque.puedeGestionar(pedido),
-                pedido.estado().siguiente().map(EstadoPedido::name).orElse(null),
+                siguienteEstadoPara(pedido),
                 pedido.estado().puedeCancelarse(),
                 pedido.items().stream()
                         .map(item -> new PedidoCajaResponse.Item(item.nombre(), item.cantidad(), item.subtotal()))

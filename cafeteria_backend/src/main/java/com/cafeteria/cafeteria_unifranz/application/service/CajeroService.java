@@ -14,4 +14,6 @@ public interface CajeroService {
     List<PedidoCajaResponse> listarPedidos(AuthenticatedUser cajero);
 
     PedidoCajaResponse actualizarEstado(AuthenticatedUser cajero, Integer pedidoId, EstadoPedido nuevoEstado);
+
+    PedidoCajaResponse confirmarPagoEfectivo(AuthenticatedUser cajero, Integer pedidoId);
 }

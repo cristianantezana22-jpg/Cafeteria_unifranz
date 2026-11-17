@@ -14,7 +14,8 @@ import {
   logoutCustomer,
   placeCustomerOrder,
 } from '../../infrastructure/api/cafeteria'
-import { STATUS_LABELS } from '../components/CashierOrderCard/CashierOrderCard.logic'
+import { STATUS_LABELS, getStatusSteps } from '../components/CashierOrderCard/CashierOrderCard.logic'
+import '../components/CashierOrderCard/cashier-order-card.css'
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents'
 
 type CartItem = {
@@ -89,8 +90,28 @@ export function CustomerView() {
 
   function refreshOrderStatus() {
     if (!session || !orderConfirmation) return
-    getCustomerOrderStatus(orderConfirmation.id).then(setOrderStatus).catch(() => {})
+    getCustomerOrderStatus(orderConfirmation.id)
+      .then((tracking) => setOrderStatus(tracking.status))
+      .catch(() => {})
   }
+
+  useEffect(() => {
+    if (!session || !orderConfirmation) return
+    let active = true
+    const refresh = () => {
+      getCustomerOrderStatus(orderConfirmation.id)
+        .then((tracking) => {
+          if (active) setOrderStatus(tracking.status)
+        })
+        .catch(() => {})
+    }
+    void refresh()
+    const intervalId = window.setInterval(refresh, 5_000)
+    return () => {
+      active = false
+      window.clearInterval(intervalId)
+    }
+  }, [session, orderConfirmation])
 
   useRealtimeEvents({
     'products-changed': refreshProducts,
@@ -239,50 +260,90 @@ export function CustomerView() {
           </span>
         </div>
 
-        {orderConfirmation && (
-          <p className="order-confirmation" role="status">
-            ¡Pedido confirmado! Código: {orderConfirmation.orderNumber ?? orderConfirmation.id}.
-            Total: Bs {Number(orderConfirmation.total).toFixed(2)}
-            {orderStatus && ` · Estado: ${STATUS_LABELS[orderStatus]}`}
-          </p>
-        )}
-        {checkoutError && (
-          <p className="form-error checkout-error" role="alert">{checkoutError}</p>
-        )}
-
-        {cartItems.length === 0 ? (
-          <p className="cart-empty">
-            Tu carrito está vacío. Agrega algo rico desde la vitrina.
-          </p>
-        ) : (
-          <>
-            <div className="cart-list">
-              {cartItems.map(({ product, quantity }) => (
-                <CartItemRow
-                  key={product.id}
-                  product={product}
-                  quantity={quantity}
-                  onQuantityChange={handleQuantityChange}
-                  onRemove={handleRemoveFromCart}
-                />
-              ))}
-            </div>
-            <div className="cart-checkout">
-              <div className="cart-total">
-                <span>Total del pedido</span>
-                <strong>Bs {cartTotal.toFixed(2)}</strong>
+        <div className={`customer-order-layout${orderConfirmation ? ' is-confirmed' : ''}`}>
+          {orderConfirmation && (
+            <aside className="customer-order-tracking" aria-label="Seguimiento de tu pedido">
+              <p className="eyebrow accent">SEGUIMIENTO EN VIVO</p>
+              <span className="customer-ticket-label">NÚMERO DE TICKET</span>
+              <strong className="customer-ticket-number">
+                {orderConfirmation.orderNumber ?? orderConfirmation.id}
+              </strong>
+              <div className="customer-order-status">
+                <span>Estado del pedido</span>
+                <strong>{orderStatus ? STATUS_LABELS[orderStatus] : 'Consultando…'}</strong>
               </div>
-              <Button
-                variant="checkout"
-                onClick={() => void handleCheckout()}
-                disabled={isSubmittingOrder}
-              >
-                {isSubmittingOrder ? 'Confirmando…' : 'Confirmar pedido'}
-                <span aria-hidden="true">→</span>
-              </Button>
-            </div>
-          </>
-        )}
+              {orderStatus && orderStatus !== 'CANCELADO' && (
+                <ol className="order-steps">
+                  {getStatusSteps(orderStatus).map((step) => (
+                    <li
+                      key={step.status}
+                      className={[
+                        'order-steps__item',
+                        step.isDone ? 'is-done' : '',
+                        step.isCurrent ? 'is-current' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      title={step.label}
+                    >
+                      <i />
+                      <span className="order-card__ticket-label">{step.label}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </aside>
+          )}
+          <div className="customer-order-content">
+            {orderConfirmation && (
+              <div className="order-confirmation" role="status">
+                <strong>¡Tu pedido fue registrado!</strong>
+                <p>
+                  Total: Bs {Number(orderConfirmation.total).toFixed(2)}
+                  {orderStatus && ` · ${STATUS_LABELS[orderStatus]}`}
+                </p>
+              </div>
+            )}
+            {checkoutError && (
+              <p className="form-error checkout-error" role="alert">{checkoutError}</p>
+            )}
+            {cartItems.length === 0 ? (
+              !orderConfirmation && (
+                <p className="cart-empty">
+                  Tu carrito está vacío. Agrega algo rico desde la vitrina.
+                </p>
+              )
+            ) : (
+              <>
+                <div className="cart-list">
+                  {cartItems.map(({ product, quantity }) => (
+                    <CartItemRow
+                      key={product.id}
+                      product={product}
+                      quantity={quantity}
+                      onQuantityChange={handleQuantityChange}
+                      onRemove={handleRemoveFromCart}
+                    />
+                  ))}
+                </div>
+                <div className="cart-checkout">
+                  <div className="cart-total">
+                    <span>Total del pedido</span>
+                    <strong>Bs {cartTotal.toFixed(2)}</strong>
+                  </div>
+                  <Button
+                    variant="checkout"
+                    onClick={() => void handleCheckout()}
+                    disabled={isSubmittingOrder}
+                  >
+                    {isSubmittingOrder ? 'Confirmando…' : 'Confirmar pedido'}
+                    <span aria-hidden="true">→</span>
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </section>
 
       <footer className="customer-footer">

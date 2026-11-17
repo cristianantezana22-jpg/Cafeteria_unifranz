@@ -38,8 +38,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.startsWith(BEARER_PREFIX)
                     ? header.substring(BEARER_PREFIX.length())
                     : header;
+            String jwt = token.trim();
+            if (jwt.isEmpty() || jwt.chars().filter(ch -> ch == '.').count() != 2) {
+                chain.doFilter(request, response);
+                return;
+            }
 
-            tokenService.parse(token.trim()).ifPresent(user -> {
+            tokenService.parse(jwt).ifPresent(user -> {
                 var authentication = new UsernamePasswordAuthenticationToken(
                         user,
                         null,

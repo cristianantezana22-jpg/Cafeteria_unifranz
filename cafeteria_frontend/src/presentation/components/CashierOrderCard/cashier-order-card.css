@@ -99,6 +99,17 @@
   list-style: none;
 }
 
+.order-steps--compact {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.order-steps__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .order-steps__item i {
   display: block;
   height: 4px;
@@ -112,6 +123,16 @@
 
 .order-steps__item.is-current i {
   background: var(--forest);
+}
+
+.order-steps__item.is-skipped i {
+  opacity: 0.4;
+}
+
+.order-steps__item .order-card__ticket-label {
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .order-card__customer {
@@ -247,4 +268,10 @@
 .order-card__cancel:disabled {
   cursor: wait;
   opacity: 0.6;
+}
+
+@media (max-width: 520px) {
+  .order-card__actions {
+    flex-direction: column;
+  }
 }
