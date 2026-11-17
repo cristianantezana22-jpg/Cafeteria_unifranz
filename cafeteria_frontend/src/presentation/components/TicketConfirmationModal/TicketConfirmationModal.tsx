@@ -1,47 +1,37 @@
-<<<<<<< HEAD
-import type { CustomerOrder } from '../../../domain/models'
 import { QRCodeSVG } from 'qrcode.react'
-import './ticket-confirmation-modal.css'
-
-type TicketConfirmationModalProps = {
-  ticketCode: string
-  qrValue: string
-  items: CustomerOrder['items']
-  total: number
-=======
-import type { CustomerOrder, OrderStatus } from '../../../domain/models'
+import type { CustomerOrder, OrderStatus, PlaceOrderRequest } from '../../../domain/models'
 import type { PaymentMethod } from '../../../domain/models/Payment'
-import type { ServiceMode } from '../../../domain/models/ServiceMode'
 import { STATUS_LABELS } from '../CashierOrderCard/CashierOrderCard.logic'
 import './ticket-confirmation-modal.css'
 
 type TicketConfirmationModalProps = {
   orderNumber: string | number
+  qrValue: string
   orderStatus: OrderStatus
   items: CustomerOrder['items']
   total: number
-  serviceMode: ServiceMode
+  serviceMode: PlaceOrderRequest['serviceMode']
   paymentMethod: PaymentMethod
   isAwaitingPayment?: boolean
->>>>>>> alan
   onDone: () => void
 }
 
+const paymentLabels: Record<PaymentMethod, string> = {
+  EFECTIVO: 'Efectivo',
+  QR: 'QR',
+  TARJETA: 'Tarjeta',
+  YA_PAGO: 'QR',
+}
+
 export function TicketConfirmationModal({
-<<<<<<< HEAD
-  ticketCode,
-  qrValue,
-  items,
-  total,
-=======
   orderNumber,
+  qrValue,
   orderStatus,
   items,
   total,
   serviceMode,
   paymentMethod,
   isAwaitingPayment = false,
->>>>>>> alan
   onDone,
 }: TicketConfirmationModalProps) {
   const itemCount = items.reduce((count, item) => count + item.quantity, 0)
@@ -54,7 +44,10 @@ export function TicketConfirmationModal({
         aria-modal="true"
         aria-labelledby="ticket-modal-title"
       >
-        <span className={`ticket-success-icon${isAwaitingPayment ? ' is-pending' : ''}`} aria-hidden="true">
+        <span
+          className={`ticket-success-icon${isAwaitingPayment ? ' is-pending' : ''}`}
+          aria-hidden="true"
+        >
           <svg viewBox="0 0 24 24" focusable="false">
             {isAwaitingPayment ? (
               <>
@@ -66,28 +59,16 @@ export function TicketConfirmationModal({
             )}
           </svg>
         </span>
-<<<<<<< HEAD
-        <p className="eyebrow accent">PEDIDO REGISTRADO</p>
-        <h2 id="ticket-modal-title">Tu ticket</h2>
-        <p className="ticket-order-number">{ticketCode}</p>
-        <div className="ticket-qr">
-          <QRCodeSVG value={qrValue} size={230} level="H" includeMargin />
-        </div>
-        <p className="ticket-qr-caption">¡Escanea el QR para el recibo!</p>
-        <p className="ticket-total">
-          <span>{itemCount} {itemCount === 1 ? 'producto' : 'productos'} · Total</span>
-          <strong>Bs {Number(total).toFixed(2)}</strong>
+        <p className="eyebrow accent">
+          {isAwaitingPayment ? 'PAGO PENDIENTE' : 'PEDIDO REGISTRADO'}
         </p>
-        <button className="ticket-done" type="button" onClick={onDone}>
-          Aceptar
-        </button>
-=======
-        <p className="eyebrow accent">{isAwaitingPayment ? 'PAGO PENDIENTE' : 'PEDIDO REGISTRADO'}</p>
         <h2 id="ticket-modal-title">
           {isAwaitingPayment ? 'Paga en caja' : 'Gracias por tu pedido'}
         </h2>
         <p className="ticket-order-number">
-          {isAwaitingPayment ? 'Tu ticket se mostrará al confirmar el pago' : `Ticket ${orderNumber}`}
+          {isAwaitingPayment
+            ? 'Tu ticket se mostrará al confirmar el pago'
+            : `Ticket ${orderNumber}`}
         </p>
         <p className="ticket-current-status" role="status">
           Estado: {isAwaitingPayment ? 'Esperando confirmación del cajero' : STATUS_LABELS[orderStatus]}
@@ -110,7 +91,7 @@ export function TicketConfirmationModal({
             <p className="ticket-more-items">y {items.length - 4} producto(s) más</p>
           )}
           <div className="ticket-summary-meta">
-            <span>{serviceMode === 'DINE_IN' ? 'Para comer aquí' : 'Para llevar'}</span>
+            <span>{serviceMode === 'COMER_AQUI' ? 'Para comer aquí' : 'Para llevar'}</span>
             <span>Pago: {paymentLabels[paymentMethod]}</span>
           </div>
           <div className="ticket-total">
@@ -119,17 +100,24 @@ export function TicketConfirmationModal({
           </div>
         </div>
 
-        {isAwaitingPayment ? (
-          <p className="ticket-reset-note">Mantén esta pantalla abierta. El ticket aparecerá cuando el cajero confirme tu pago.</p>
-        ) : (
+        {!isAwaitingPayment && (
           <>
+            <div className="ticket-qr">
+              <QRCodeSVG value={qrValue} size={230} level="H" includeMargin />
+            </div>
+            <p className="ticket-qr-caption">Escanea el QR para ver el recibo.</p>
             <p className="ticket-reset-note">La pantalla volverá al inicio en unos segundos.</p>
             <button className="ticket-done" type="button" onClick={onDone}>
               Listo
             </button>
           </>
         )}
->>>>>>> alan
+
+        {isAwaitingPayment && (
+          <p className="ticket-reset-note">
+            Mantén esta pantalla abierta. El ticket aparecerá cuando el cajero confirme tu pago.
+          </p>
+        )}
       </section>
     </div>
   )

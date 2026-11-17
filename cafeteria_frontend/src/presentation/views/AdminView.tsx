@@ -966,11 +966,8 @@ const CSS = `
   .side-heading { display: none; }
   .nav { flex-direction: row; overflow-x: auto; padding-bottom: 2px; }
   .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; }
-<<<<<<< HEAD
   .kanban { grid-template-columns: 1fr; }
   .col { min-height: 0; }
-=======
->>>>>>> 05381ec9fa7a2be9f883219c4182df5cb9263c7e
   .charts { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {

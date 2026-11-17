@@ -57,7 +57,6 @@
   font-weight: 800;
 }
 
-<<<<<<< HEAD
 .ticket-qr {
   display: grid;
   width: fit-content;
@@ -77,13 +76,13 @@
   color: var(--muted);
   font-size: 13px;
   font-weight: 600;
-=======
+}
+
 .ticket-current-status {
   margin: -12px 0 20px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
->>>>>>> alan
 }
 
 .ticket-summary {

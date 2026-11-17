@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { Category } from '../../domain/models/Category'
-import type { CustomerOrder, Product } from '../../domain/models'
+import type { CustomerOrder, PlaceOrderRequest, Product } from '../../domain/models'
 import type { ReceiptData } from '../../application/receipt/receiptData'
 import type { OrderStatus } from '../../domain/models'
 import type { PaymentMethod } from '../../domain/models/Payment'
-import type { ServiceMode } from '../../domain/models/ServiceMode'
 import { CategoryFilter } from '../components/CategoryFilter/CategoryFilter'
 import { PaymentModal } from '../components/PaymentModal/PaymentModal'
 import { Screensaver } from '../components/Screensaver/Screensaver'
@@ -29,12 +28,10 @@ type TicketState = {
   order: CustomerOrder
   receipt: ReceiptData
   qrValue: string
-  serviceMode: ServiceMode
+  serviceMode: PlaceOrderRequest['serviceMode']
   paymentMethod: PaymentMethod
   orderStatus: OrderStatus
 }
-
-const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 
 function formatPrice(price: number) {
   return `Bs ${Number(price).toFixed(2)}`
@@ -52,15 +49,8 @@ function formatReceiptForQr(receipt: ReceiptData) {
       (item) => `${item.quantity} x ${item.name} - ${formatPrice(item.subtotal)}`,
     ),
     '',
-    `Total pagado: ${formatPrice(receipt.total)}`,
+    `Total: ${formatPrice(receipt.total)}`,
   ].join('\n')
-}
-
-function createTicketCode(date: Date) {
-  const month = MONTHS[date.getMonth()]
-  const day = date.getDate().toString().padStart(2, '0')
-  const random = Math.floor(Math.random() * 100) + 1
-  return `${month}${day}${random}`
 }
 
 export function ScreensView() {
@@ -138,11 +128,19 @@ export function ScreensView() {
             (current.order.orderNumber === (tracking.ticket ?? undefined) &&
               current.orderStatus === tracking.status)
               ? current
-              : {
-                  ...current,
-                  order: { ...current.order, orderNumber: tracking.ticket ?? undefined },
-                  orderStatus: tracking.status,
-                },
+              : (() => {
+                  const receipt = {
+                    ...current.receipt,
+                    ticketCode: tracking.ticket ?? current.receipt.ticketCode,
+                  }
+                  return {
+                    ...current,
+                    order: { ...current.order, orderNumber: tracking.ticket ?? undefined },
+                    receipt,
+                    qrValue: formatReceiptForQr(receipt),
+                    orderStatus: tracking.status,
+                  }
+                })(),
           )
         })
         .catch(() => {})
@@ -212,16 +210,25 @@ export function ScreensView() {
     setCartItems((items) => items.filter((item) => item.product.id !== productId))
   }
 
-  async function confirmPayment() {
+  async function confirmPayment(method: PaymentMethod) {
     if (cartItems.length === 0 || isSubmittingOrder) return
 
     setIsSubmittingOrder(true)
     setCheckoutError('')
     try {
       const now = new Date()
-      const ticketCode = createTicketCode(now)
+      const order = await placeCustomerOrder({
+        items: cartItems.map(({ product, quantity }) => ({
+          productId: product.id,
+          quantity,
+        })),
+        serviceMode: 'COMER_AQUI',
+        paymentMethod: method,
+        totalAmount: cartTotal,
+      })
+      const ticketCode = order.orderNumber ?? order.id
       const receipt: ReceiptData = {
-        ticketCode,
+        ticketCode: String(ticketCode),
         date: new Intl.DateTimeFormat('es-BO', {
           day: '2-digit',
           month: '2-digit',
@@ -232,26 +239,19 @@ export function ScreensView() {
           minute: '2-digit',
           hour12: false,
         }).format(now),
-        items: cartItems.map(({ product, quantity }) => ({
-          name: product.name,
-          quantity,
-          unitPrice: Number(product.price),
-          subtotal: Number(product.price) * quantity,
+        items: order.items.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice),
+          subtotal: Number(item.subtotal),
         })),
-        total: cartTotal,
+        total: Number(order.total),
       }
-      const order = await placeCustomerOrder({
-        items: cartItems.map(({ product, quantity }) => ({
-          productId: product.id,
-          quantity,
-        })),
-        serviceMode: 'COMER_AQUI',
-        paymentMethod: 'YA_PAGO',
-        totalAmount: cartTotal,
-      })
-      setTicket({ order, receipt, qrValue: formatReceiptForQr(receipt) })
+      const serviceMode: PlaceOrderRequest['serviceMode'] = 'COMER_AQUI'
       setTicket({
         order,
+        receipt,
+        qrValue: formatReceiptForQr(receipt),
         serviceMode,
         paymentMethod: method,
         orderStatus: 'PENDIENTE',
@@ -436,18 +436,14 @@ export function ScreensView() {
             if (!isSubmittingOrder) resetKiosk()
           }}
           onConfirm={confirmPayment}
-          totalAmount={cartTotal}
           error={checkoutError}
         />
       )}
 
       {started && ticket && (
         <TicketConfirmationModal
-          ticketCode={ticket.receipt.ticketCode}
-          qrValue={ticket.qrValue}
-          items={ticket.order.items}
-          total={ticket.receipt.total}
           orderNumber={ticket.order.orderNumber ?? ticket.order.id}
+          qrValue={ticket.qrValue}
           orderStatus={ticket.orderStatus}
           items={ticket.order.items}
           total={Number(ticket.order.total)}

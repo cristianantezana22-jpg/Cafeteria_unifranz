@@ -3,11 +3,8 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   loginCustomer,
-<<<<<<< HEAD
   loginWithGoogle,
-=======
   loginKiosk,
->>>>>>> alan
   saveCustomerSession,
 } from '../../../infrastructure/api/cafeteria'
 import { getRolePath } from '../../auth/routeAuth'

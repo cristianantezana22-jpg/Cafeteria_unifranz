@@ -7,8 +7,7 @@ type PaymentModalProps = {
   variant: 'customer' | 'screen'
   total?: number
   onClose: () => void
-  onConfirm: () => void | Promise<void>
-  totalAmount: number
+  onConfirm: (method: PaymentMethod) => void | Promise<void>
   error?: string
 }
 
@@ -25,7 +24,7 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
   async function handleConfirm() {
     setIsConfirming(true)
     try {
-      await onConfirm()
+      await onConfirm(selectedMethod === 'QR' ? 'YA_PAGO' : selectedMethod)
     } finally {
       setIsConfirming(false)
     }
@@ -74,7 +73,7 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
             : `Monto a pagar: Bs. ${Number(total ?? 0).toFixed(2)}`}
         </p>
         {error && <p className="payment-modal-error" role="alert">{error}</p>}
-        {variant === 'customer' && <div className="payment-modal-options">
+        <div className="payment-modal-options">
           {methods.map((method) => {
             const isQr = method === 'QR'
             const isSelected = selectedMethod === method
@@ -110,14 +109,13 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
               </button>
             )
           })}
-        </div>}
-        {(variant === 'screen' || selectedMethod === 'QR') && (
+        </div>
+        {selectedMethod === 'QR' && (
           <div className="payment-qr-panel">
             <img src={qrPaymentImage} alt="Código QR para realizar el pago" />
             <p>Escanea el código QR con la aplicación de tu banco.</p>
           </div>
         )}
-<<<<<<< HEAD
         <div className={variant === 'screen' ? 'payment-modal-actions' : undefined}>
           {variant === 'screen' && (
             <button
@@ -132,32 +130,17 @@ export function PaymentModal({ variant, total, onClose, onConfirm, error }: Paym
           <button
             className="payment-confirm-button"
             type="button"
-            onClick={() =>
-              void handleConfirm(selectedMethod === 'QR' ? 'YA_PAGO' : selectedMethod)
-            }
+            onClick={() => void handleConfirm()}
             disabled={isConfirming}
           >
-            {isConfirming ? 'Procesando pedido…' : 'Ya pagué'}
+            {isConfirming
+              ? 'Procesando pedido…'
+              : selectedMethod === 'EFECTIVO'
+                ? 'Pedir en efectivo'
+                : 'Ya pagué'}
             {!isConfirming && variant === 'customer' && <span aria-hidden="true">→</span>}
           </button>
         </div>
-=======
-        <button
-          className="payment-confirm-button"
-          type="button"
-          onClick={() =>
-            void handleConfirm(selectedMethod === 'QR' ? 'YA_PAGO' : selectedMethod)
-          }
-          disabled={isConfirming}
-        >
-          {isConfirming
-            ? 'Procesando pedido…'
-            : selectedMethod === 'EFECTIVO'
-              ? 'Pedir en efectivo'
-              : 'Ya pagué'}
-          {!isConfirming && <span aria-hidden="true">→</span>}
-        </button>
->>>>>>> alan
       </section>
     </div>
   )

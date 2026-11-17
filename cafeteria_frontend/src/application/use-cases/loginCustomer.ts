@@ -18,6 +18,11 @@ export function createLoginWithGoogle(
 ) {
   return async (credential: string) => {
     const session = await gateway.loginWithGoogle(credential)
+    sessions.save(session)
+    return session
+  }
+}
+
 export function createLoginKiosk(
   gateway: CafeteriaGateway,
   sessions: SessionRepository,

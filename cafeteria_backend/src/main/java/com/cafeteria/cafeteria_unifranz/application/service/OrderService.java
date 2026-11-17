@@ -79,29 +79,22 @@ public class OrderService {
         String requestedMethod = options.paymentMethod();
         boolean alreadyPaid = "YA_PAGO".equals(requestedMethod);
         boolean placedAtKiosk = user != null && user.role() == UserRole.PANTALLA;
-        NuevoPedido newOrder = new NuevoPedido(
-                user == null ? null : user.id(),
-                user == null ? null : user.email(),
-                placedAtKiosk ? "PANTALLA_TACTIL" : "WEB_MOVIL",
-                alreadyPaid ? "QR" : requestedMethod,
-        boolean origenPantalla = user != null && user.role() == UserRole.PANTALLA;
         String paymentMethod = alreadyPaid ? "QR" : requestedMethod;
-        if (origenPantalla && !Set.of("QR", "EFECTIVO").contains(paymentMethod)) {
+        if (placedAtKiosk && !Set.of("QR", "EFECTIVO").contains(paymentMethod)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Las pantallas solo admiten pago QR o en efectivo.");
         }
-        if (!origenPantalla && !"QR".equals(paymentMethod)) {
+        if (!placedAtKiosk && !"QR".equals(paymentMethod)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Los pedidos de clientes solo admiten pago QR.");
         }
-        String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
         NuevoPedido newOrder = new NuevoPedido(
                 user == null ? null : user.id(),
                 user == null ? null : user.email(),
-                origenPantalla ? "PANTALLA_TACTIL" : "WEB_MOVIL",
-                serviceMode,
+                placedAtKiosk ? "PANTALLA_TACTIL" : "WEB_MOVIL",
+                options.serviceMode(),
                 paymentMethod,
                 alreadyPaid ? "YA_PAGO" : null,
                 lines);
@@ -118,7 +111,6 @@ public class OrderService {
         return new OrderResponse(
                 saved.id().longValue(), saved.ticket(), user == null ? null : user.id().longValue(),
                 options.serviceMode(), requestedMethod, items, total, LocalDateTime.now());
-                serviceMode, requestedMethod, items, total, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
@@ -144,12 +136,6 @@ public class OrderService {
         String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
         String paymentMethod = request.paymentMethod() == null ? "QR" : request.paymentMethod();
         if (!SERVICE_MODES.contains(serviceMode)) {
-    private PedidoEstadoResponse toOrderStatus(PedidoClienteEstado estado) {
-        return new PedidoEstadoResponse(estado.estado().name(), estado.ticket(), estado.estadoPago());
-    }
-
-    private void validateCheckoutOptions(CreateOrderRequest request) {
-        if (request.serviceMode() != null && !SERVICE_MODES.contains(request.serviceMode())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "La modalidad debe ser COMER_AQUI o LLEVAR.");
@@ -160,6 +146,10 @@ public class OrderService {
                     "El método de pago no es válido.");
         }
         return new CheckoutOptions(serviceMode, paymentMethod);
+    }
+
+    private PedidoEstadoResponse toOrderStatus(PedidoClienteEstado estado) {
+        return new PedidoEstadoResponse(estado.estado().name(), estado.ticket(), estado.estadoPago());
     }
 
     private long parseProductId(String productId) {
