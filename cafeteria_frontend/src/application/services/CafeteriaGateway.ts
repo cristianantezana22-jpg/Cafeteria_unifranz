@@ -1,5 +1,6 @@
 import type {
   CustomerOrder,
+  CustomerOrderTracking,
   CustomerSession,
   Category,
   CashierOrder,
@@ -32,6 +33,7 @@ export interface CafeteriaGateway {
     orderId: number,
     status: OrderStatus,
   ) => Promise<CashierOrder>
+  confirmCashPayment: (token: string, orderId: number) => Promise<CashierOrder>
   getMenuProducts: (token: string) => Promise<MenuProduct[]>
   getMenuCategories: (token: string) => Promise<MenuCategory[]>
   createMenuProduct: (
@@ -56,5 +58,5 @@ export interface CafeteriaGateway {
   getCustomerOrderStatus: (
     token: string,
     orderId: string,
-  ) => Promise<OrderStatus>
+  ) => Promise<CustomerOrderTracking>
 }

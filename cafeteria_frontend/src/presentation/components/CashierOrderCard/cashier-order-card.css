@@ -269,3 +269,9 @@
   cursor: wait;
   opacity: 0.6;
 }
+
+@media (max-width: 520px) {
+  .order-card__actions {
+    flex-direction: column;
+  }
+}

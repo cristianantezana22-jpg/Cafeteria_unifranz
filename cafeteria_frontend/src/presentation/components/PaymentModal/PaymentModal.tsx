@@ -12,7 +12,7 @@ type PaymentModalProps = {
 
 const paymentMethods: Record<PaymentModalProps['variant'], PaymentMethod[]> = {
   customer: ['QR'],
-  screen: ['QR'],
+  screen: ['QR', 'EFECTIVO'],
 }
 
 export function PaymentModal({ variant, onClose, onConfirm, error }: PaymentModalProps) {
@@ -121,7 +121,11 @@ export function PaymentModal({ variant, onClose, onConfirm, error }: PaymentModa
           }
           disabled={isConfirming}
         >
-          {isConfirming ? 'Procesando pedido…' : 'Ya pagué'}
+          {isConfirming
+            ? 'Procesando pedido…'
+            : selectedMethod === 'EFECTIVO'
+              ? 'Pedir en efectivo'
+              : 'Ya pagué'}
           {!isConfirming && <span aria-hidden="true">→</span>}
         </button>
       </section>

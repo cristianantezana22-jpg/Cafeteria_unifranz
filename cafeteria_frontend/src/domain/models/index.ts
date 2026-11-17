@@ -55,6 +55,13 @@ export type CustomerOrder = {
   total: number
   createdAt: string
 }
+
+export type CustomerOrderTracking = {
+  status: OrderStatus
+  ticket: string | null
+  paymentStatus: string | null
+}
+
 export type MenuCategory = {
   id: number
   name: string

@@ -7,6 +7,7 @@ export function CashierOrderCard({
   order,
   isUpdating,
   onAdvance,
+  onConfirmCashPayment,
   onDeliverDirect,
   onCancel,
 }: CashierOrderCardProps) {
@@ -94,7 +95,7 @@ export function CashierOrderCard({
           </p>
         )}
 
-        {(details.canAdvance || details.canDeliverDirect) && (
+        {(details.canConfirmCashPayment || details.canAdvance || details.canDeliverDirect) && (
           <div className="order-card__actions">
             {details.canCancel && (
               <button
@@ -115,6 +116,17 @@ export function CashierOrderCard({
               >
                 {isUpdating ? 'Actualizando…' : details.actionLabel}
                 <Icon name="arrow-right" size={16} className="icon--inverse" />
+              </button>
+            )}
+            {details.canConfirmCashPayment && (
+              <button
+                className="order-card__advance"
+                type="button"
+                disabled={isUpdating}
+                onClick={() => onConfirmCashPayment(order)}
+              >
+                {isUpdating ? 'Confirmando…' : 'Confirmar pago en efectivo'}
+                <Icon name="wallet" size={16} className="icon--inverse" />
               </button>
             )}
             {details.canDeliverDirect && (
