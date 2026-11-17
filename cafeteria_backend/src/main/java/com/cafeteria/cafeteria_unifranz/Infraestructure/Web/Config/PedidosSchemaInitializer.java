@@ -45,6 +45,8 @@ public class PedidosSchemaInitializer implements ApplicationRunner {
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS modificado_cuando TIMESTAMP").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS modificado_por VARCHAR(150)").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS eliminado_cuando TIMESTAMP").update();
+        jdbc.sql("ALTER TABLE pedidos ALTER COLUMN ticket_numero DROP NOT NULL").update();
+        jdbc.sql("ALTER TABLE pedidos ALTER COLUMN numero_pedido DROP NOT NULL").update();
 
         jdbc.sql("""
                 ALTER TABLE pedidos
@@ -61,7 +63,7 @@ public class PedidosSchemaInitializer implements ApplicationRunner {
         jdbc.sql("""
                 ALTER TABLE pedidos
                 ADD CONSTRAINT pedidos_ticket_formato_check
-                CHECK (ticket_numero IS NULL OR ticket_numero ~ '^[PC][0-9]+$' OR ticket_numero ~ '^[0-9]+$')
+                CHECK (ticket_numero IS NULL OR ticket_numero ~ '^(CQ|PQ|PE|P|C)[0-9]+$' OR ticket_numero ~ '^[0-9]+$')
                 """).update();
 
         jdbc.sql("""

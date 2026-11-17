@@ -12,6 +12,7 @@ import { HttpCafeteriaGateway } from './HttpCafeteriaGateway'
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository'
 import type { CustomerSession, MenuProductRequest } from '../../domain/models'
 import { createGetCustomerOrderStatus } from '../../application/use-cases/getCustomerOrderStatus'
+import { createConfirmCashPayment } from '../../application/use-cases/confirmCashPayment'
 import { createSetProductAvailability } from '../../application/use-cases/setProductAvailability'
 import { createSubscribeToRealtime } from '../../application/use-cases/subscribeToRealtime'
 import { SseRealtimeGateway } from './SseRealtimeGateway'
@@ -29,6 +30,7 @@ export const updateCashierOrderStatus = createUpdateCashierOrderStatus(
   gateway,
   sessions,
 )
+export const confirmCashPayment = createConfirmCashPayment(gateway, sessions)
 export const setProductAvailability = createSetProductAvailability(gateway, sessions)
 export const getCustomerOrderStatus = createGetCustomerOrderStatus(gateway, sessions)
 export const subscribeToRealtime = createSubscribeToRealtime(new SseRealtimeGateway())
