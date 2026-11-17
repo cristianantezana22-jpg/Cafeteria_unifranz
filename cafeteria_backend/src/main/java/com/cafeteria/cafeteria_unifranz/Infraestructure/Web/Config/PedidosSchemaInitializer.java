@@ -39,6 +39,7 @@ public class PedidosSchemaInitializer implements ApplicationRunner {
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS bloque_id INTEGER").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS origen_pedido VARCHAR(40)").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS estado VARCHAR(30)").update();
+        jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS estado_pago VARCHAR(30)").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS monto_total NUMERIC(12,2)").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS creado_por VARCHAR(150)").update();
         jdbc.sql("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS creado_cuando TIMESTAMP").update();
@@ -71,11 +72,13 @@ public class PedidosSchemaInitializer implements ApplicationRunner {
                     id SERIAL PRIMARY KEY,
                     pedido_id INTEGER NOT NULL,
                     producto_id INTEGER NOT NULL,
+                    nombre_producto VARCHAR(120),
                     cantidad INTEGER NOT NULL,
                     precio_unitario NUMERIC(10,2) NOT NULL,
                     subtotal NUMERIC(12,2) NOT NULL
                 )
                 """).update();
+        jdbc.sql("ALTER TABLE detalle_pedidos ADD COLUMN IF NOT EXISTS nombre_producto VARCHAR(120)").update();
 
         jdbc.sql("""
                 CREATE TABLE IF NOT EXISTS pagos (

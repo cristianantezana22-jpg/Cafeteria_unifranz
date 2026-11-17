@@ -85,10 +85,12 @@ public class OrderService {
                     HttpStatus.BAD_REQUEST,
                     "Los pedidos de clientes solo admiten pago QR.");
         }
+        String serviceMode = request.serviceMode() == null ? "COMER_AQUI" : request.serviceMode();
         NuevoPedido newOrder = new NuevoPedido(
                 user == null ? null : user.id(),
                 user == null ? null : user.email(),
                 origenPantalla ? "PANTALLA_TACTIL" : "WEB_MOVIL",
+                serviceMode,
                 paymentMethod,
                 alreadyPaid ? "YA_PAGO" : null,
                 lines);
@@ -104,7 +106,7 @@ public class OrderService {
         BigDecimal total = newOrder.total();
         return new OrderResponse(
                 saved.id().longValue(), saved.ticket(), user == null ? null : user.id().longValue(),
-                request.serviceMode(), requestedMethod, items, total, LocalDateTime.now());
+                serviceMode, requestedMethod, items, total, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)

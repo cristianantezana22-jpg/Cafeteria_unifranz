@@ -33,14 +33,19 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
         String usuarioEmail = pedido.usuarioEmail() == null ? CLIENTE_MOSTRADOR_EMAIL : pedido.usuarioEmail();
 
         Integer id = jdbc.sql("""
-                        INSERT INTO pedidos (id, ticket_numero, numero_pedido, usuario_id, bloque_id, origen_pedido,
-                                             estado, monto_total, creado_por, creado_cuando)
-                        VALUES (DEFAULT, NULL, NULL, :usuario, :bloque, :origen, 'PENDIENTE', :total, :email, CURRENT_TIMESTAMP)
+                        INSERT INTO pedidos (id, ticket_numero, numero_pedido, usuario_id, cliente_id, bloque_id,
+                                             origen_pedido, modalidad_servicio, metodo_pago, estado_pago,
+                                             estado, monto_total, creado_por, creado_cuando, fecha_creacion)
+                        VALUES (DEFAULT, NULL, NULL, :usuario, :usuario, :bloque, :origen, :modalidad, :metodo,
+                                :estadoPago, 'PENDIENTE', :total, :email, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                         RETURNING id
                         """)
                 .param("usuario", usuarioId)
                 .param("bloque", BLOQUE_POR_DEFECTO)
                 .param("origen", pedido.origen())
+                .param("modalidad", pedido.modalidadServicio())
+                .param("metodo", pedido.metodoPago())
+                .param("estadoPago", "QR".equals(pedido.metodoPago()) ? "COMPLETADO" : "PENDIENTE")
                 .param("total", pedido.total())
                 .param("email", usuarioEmail)
                 .query(Long.class)
@@ -61,11 +66,13 @@ public class PedidoClienteRepositoryAdapter implements PedidoClienteRepository {
 
         for (NuevoPedido.Linea linea : pedido.lineas()) {
             jdbc.sql("""
-                            INSERT INTO detalle_pedidos (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
-                            VALUES (:pedido, :producto, :cantidad, :precio, :subtotal)
+                            INSERT INTO detalle_pedidos
+                                (pedido_id, producto_id, nombre_producto, cantidad, precio_unitario, subtotal)
+                            VALUES (:pedido, :producto, :nombre, :cantidad, :precio, :subtotal)
                             """)
                     .param("pedido", id)
                     .param("producto", linea.productoId())
+                    .param("nombre", linea.nombre())
                     .param("cantidad", linea.cantidad())
                     .param("precio", linea.precioUnitario())
                     .param("subtotal", linea.subtotal())
