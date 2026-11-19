@@ -57,7 +57,8 @@ export function getCardDetails(order: CashierOrder) {
   const currentStep = STATUS_FLOW.indexOf(order.status)
   const origenPantalla = esOrigenPantalla(order.origin)
   const canAct = order.isEditable && order.nextStatus !== null
-  const lockedByBlock = !order.isEditable && order.nextStatus !== null
+  const lockedByBlock =
+    !order.isEditable && (order.nextStatus !== null || order.isCancellable)
   const canConfirmCashPayment =
     order.isEditable &&
     origenPantalla &&
